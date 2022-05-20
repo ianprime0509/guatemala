@@ -9,7 +9,7 @@ import static java.lang.foreign.MemoryLayout.PathElement.groupElement;
 import static java.lang.foreign.ValueLayout.*;
 
 public final class TypeQuery {
-    private static final MemoryLayout LAYOUT = MemoryLayout.structLayout(
+    private static final MemoryLayout MEMORY_LAYOUT = MemoryLayout.structLayout(
             JAVA_LONG.withName("type"),
             ADDRESS.withName("type_name"),
             JAVA_INT.withName("class_size"),
@@ -21,12 +21,16 @@ public final class TypeQuery {
         this.memorySegment = Objects.requireNonNull(memorySegment, "memorySegment");
     }
 
+    public static MemoryLayout getMemoryLayout() {
+        return MEMORY_LAYOUT;
+    }
+
     public static TypeQuery ofUninitialized() {
         return ofUninitialized(MemorySession.openImplicit());
     }
 
     public static TypeQuery ofUninitialized(MemorySession memorySession) {
-        return new TypeQuery(memorySession.allocate(LAYOUT));
+        return new TypeQuery(memorySession.allocate(MEMORY_LAYOUT));
     }
 
     public static TypeQuery wrap(MemorySegment memorySegment) {
@@ -38,20 +42,20 @@ public final class TypeQuery {
     }
 
     public Type getType() {
-        return Type.ofRaw(memorySegment.get(JAVA_LONG, LAYOUT.byteOffset(groupElement("type"))));
+        return Type.ofRaw(memorySegment.get(JAVA_LONG, MEMORY_LAYOUT.byteOffset(groupElement("type"))));
     }
 
     public String getTypeName() {
         return memorySegment
-                .get(ADDRESS, LAYOUT.byteOffset(groupElement("type_name")))
+                .get(ADDRESS, MEMORY_LAYOUT.byteOffset(groupElement("type_name")))
                 .getUtf8String(0);
     }
 
     public int getClassSize() {
-        return memorySegment.get(JAVA_INT, LAYOUT.byteOffset(groupElement("class_size")));
+        return memorySegment.get(JAVA_INT, MEMORY_LAYOUT.byteOffset(groupElement("class_size")));
     }
 
     public int getInstanceSize() {
-        return memorySegment.get(JAVA_INT, LAYOUT.byteOffset(groupElement("instance_size")));
+        return memorySegment.get(JAVA_INT, MEMORY_LAYOUT.byteOffset(groupElement("instance_size")));
     }
 }
