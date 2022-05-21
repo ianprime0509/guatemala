@@ -1,16 +1,16 @@
 package dev.ianjohnson.guatemala.gio;
 
 import dev.ianjohnson.guatemala.gobject.Object;
+import dev.ianjohnson.guatemala.gobject.ObjectType;
 
 import java.lang.foreign.MemoryAddress;
 
 public class File extends Object {
+    public static final ObjectType<Class, File> TYPE =
+            ObjectType.ofTypeGetter("g_file_get_type", Class::new, File::new);
+
     protected File(MemoryAddress memoryAddress) {
         super(memoryAddress);
-    }
-
-    public static File ofMemoryAddress(MemoryAddress memoryAddress) {
-        return ofMemoryAddress(memoryAddress, File::new);
     }
 
     public static class Class extends Object.Class {

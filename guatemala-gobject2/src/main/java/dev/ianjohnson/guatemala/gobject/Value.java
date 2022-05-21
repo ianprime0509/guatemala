@@ -12,15 +12,19 @@ import static java.lang.foreign.ValueLayout.ADDRESS;
 import static java.lang.foreign.ValueLayout.JAVA_LONG;
 
 public final class Value {
-    private static final MemoryLayout MEMORY_LAYOUT = MemoryLayout.structLayout(
-            Type.getMemoryLayout().withName("g_type"),
+    public static final MemoryLayout LAYOUT = MemoryLayout.structLayout(
+            Type.LAYOUT.withName("g_type"),
             // We don't use the data field, but it needs to be present to get the correct layout
             MemoryLayout.paddingLayout(128).withName("data"));
 
     private static final MethodHandle G_VALUE_COPY =
             BindingSupport.lookup("g_value_copy", FunctionDescriptor.ofVoid(ADDRESS, ADDRESS));
+    private static final MethodHandle G_VALUE_INIT =
+            BindingSupport.lookup("g_value_init", FunctionDescriptor.of(ADDRESS, ADDRESS, ADDRESS));
     private static final MethodHandle G_VALUE_SET_INT =
             BindingSupport.lookup("g_value_set_int", FunctionDescriptor.ofVoid(ADDRESS, GINT));
+    private static final MethodHandle G_VALUE_SET_OBJECT =
+            BindingSupport.lookup("g_value_set_object", FunctionDescriptor.ofVoid(ADDRESS, ADDRESS));
     private static final MethodHandle G_VALUE_SET_STRING =
             BindingSupport.lookup("g_value_set_string", FunctionDescriptor.ofVoid(ADDRESS, ADDRESS));
     private static final MethodHandle G_VALUE_UNSET =
@@ -32,28 +36,28 @@ public final class Value {
         this.memorySegment = Objects.requireNonNull(memorySegment, "memorySegment");
     }
 
-    public static MemoryLayout getMemoryLayout() {
-        return MEMORY_LAYOUT;
-    }
-
     public static Value ofUninitialized() {
         return ofUninitialized(MemorySession.openImplicit());
     }
 
     public static Value ofUninitialized(MemorySession memorySession) {
-        return wrapOwning(memorySession.allocate(MEMORY_LAYOUT));
+        return wrapOwning(memorySession.allocate(LAYOUT));
     }
 
     public static Value of(int value) {
         Value v = ofUninitialized();
-        v.setType(Type.INT);
+        v.set(value);
+        return v;
+    }
+
+    public static Value of(Object value) {
+        Value v = ofUninitialized();
         v.set(value);
         return v;
     }
 
     public static Value of(String value) {
         Value v = ofUninitialized();
-        v.setType(Type.STRING);
         v.set(value);
         return v;
     }
@@ -63,7 +67,7 @@ public final class Value {
     }
 
     public static Value wrap(MemoryAddress memoryAddress, MemorySession memorySession) {
-        return wrap(MemorySegment.ofAddress(memoryAddress, MEMORY_LAYOUT.byteSize(), memorySession));
+        return wrap(MemorySegment.ofAddress(memoryAddress, LAYOUT.byteSize(), memorySession));
     }
 
     public static Value wrapOwning(MemorySegment memorySegment) {
@@ -73,7 +77,7 @@ public final class Value {
     }
 
     public void copyFrom(Value other) {
-        setType(other.getType());
+        init(other.getType());
         BindingSupport.runThrowing(() -> G_VALUE_COPY.invoke(other.getMemorySegment(), getMemorySegment()));
     }
 
@@ -82,20 +86,27 @@ public final class Value {
     }
 
     public Type getType() {
-        return Type.ofRaw(getMemorySegment().get(JAVA_LONG, 0));
+        return Type.ofRaw(getMemorySegment().get(JAVA_LONG, LAYOUT.byteOffset(groupElement("g_type"))));
+    }
+
+    public void init(Type type) {
+        BindingSupport.runThrowing(() -> G_VALUE_INIT.invoke(getMemorySegment(), type.getRaw()));
     }
 
     public void set(int value) {
+        init(Type.INT);
         BindingSupport.runThrowing(() -> G_VALUE_SET_INT.invoke(getMemorySegment(), value));
     }
 
-    public void set(String value) {
-        BindingSupport.runThrowing(
-                local -> G_VALUE_SET_STRING.invoke(getMemorySegment(), local.allocateUtf8String(value)));
+    public void set(Object value) {
+        init(Object.TYPE);
+        BindingSupport.runThrowing(() -> G_VALUE_SET_OBJECT.invoke(getMemorySegment(), value.getMemoryAddress()));
     }
 
-    public void setType(Type type) {
-        memorySegment.set(JAVA_LONG, MEMORY_LAYOUT.byteOffset(groupElement("g_type")), type.getRaw());
+    public void set(String value) {
+        init(Type.STRING);
+        BindingSupport.runThrowing(
+                local -> G_VALUE_SET_STRING.invoke(getMemorySegment(), local.allocateUtf8String(value)));
     }
 
     private record UnsetAction(MemorySegment memorySegment) implements Runnable {

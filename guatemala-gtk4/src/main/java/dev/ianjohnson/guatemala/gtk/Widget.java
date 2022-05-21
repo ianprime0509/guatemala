@@ -2,6 +2,7 @@ package dev.ianjohnson.guatemala.gtk;
 
 import dev.ianjohnson.guatemala.core.BindingSupport;
 import dev.ianjohnson.guatemala.gobject.InitiallyUnowned;
+import dev.ianjohnson.guatemala.gobject.ObjectType;
 
 import java.lang.foreign.FunctionDescriptor;
 import java.lang.foreign.MemoryAddress;
@@ -18,12 +19,11 @@ public class Widget extends InitiallyUnowned {
     private static final MethodHandle GTK_WIDGET_SHOW =
             BindingSupport.lookup("gtk_widget_show", FunctionDescriptor.ofVoid(ADDRESS));
 
+    public static final ObjectType<Class, Widget> TYPE =
+            ObjectType.ofTypeGetter("gtk_widget_get_type", Class::new, Widget::new);
+
     protected Widget(MemoryAddress memoryAddress) {
         super(memoryAddress);
-    }
-
-    public static Widget ofMemoryAddress(MemoryAddress memoryAddress) {
-        return ofMemoryAddress(memoryAddress, Widget::new);
     }
 
     public void setHalign(Align align) {

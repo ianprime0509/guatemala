@@ -2,6 +2,7 @@ package dev.ianjohnson.guatemala.gio;
 
 import dev.ianjohnson.guatemala.core.BindingSupport;
 import dev.ianjohnson.guatemala.gobject.Object;
+import dev.ianjohnson.guatemala.gobject.ObjectType;
 import dev.ianjohnson.guatemala.gobject.Type;
 
 import java.lang.foreign.*;
@@ -14,33 +15,21 @@ import java.util.function.Function;
 import static dev.ianjohnson.guatemala.glib.Types.GINT;
 import static dev.ianjohnson.guatemala.glib.Types.GPOINTER;
 import static java.lang.foreign.MemoryLayout.PathElement.groupElement;
-import static java.lang.foreign.ValueLayout.*;
+import static java.lang.foreign.ValueLayout.ADDRESS;
+import static java.lang.foreign.ValueLayout.JAVA_INT;
 
 public class Application extends Object {
-    private static final MemoryLayout MEMORY_LAYOUT =
-            MemoryLayout.structLayout(Object.getMemoryLayout().withName("parent_instance"), ADDRESS.withName("priv"));
+    public static final MemoryLayout LAYOUT =
+            MemoryLayout.structLayout(Object.LAYOUT.withName("parent_instance"), ADDRESS.withName("priv"));
 
-    private static final MethodHandle G_APPLICATION_GET_TYPE =
-            BindingSupport.lookup("g_application_get_type", FunctionDescriptor.of(JAVA_LONG));
     private static final MethodHandle G_APPLICATION_RUN =
             BindingSupport.lookup("g_application_run", FunctionDescriptor.of(JAVA_INT, ADDRESS, JAVA_INT, ADDRESS));
 
-    private static final Type TYPE = Type.ofMethodHandle(G_APPLICATION_GET_TYPE);
+    public static final ObjectType<Class, Application> TYPE =
+            ObjectType.ofTypeGetter("g_application_get_type", Class::new, Application::new);
 
     protected Application(MemoryAddress memoryAddress) {
         super(memoryAddress);
-    }
-
-    public static MemoryLayout getMemoryLayout() {
-        return MEMORY_LAYOUT;
-    }
-
-    public static Application ofMemoryAddress(MemoryAddress memoryAddress) {
-        return ofMemoryAddress(memoryAddress, Application::new);
-    }
-
-    public static Type getType() {
-        return TYPE;
     }
 
     public int run(String[] args) {
@@ -65,8 +54,8 @@ public class Application extends Object {
     }
 
     public static class Class extends Object.Class {
-        private static final MemoryLayout MEMORY_LAYOUT = MemoryLayout.structLayout(
-                Object.Class.getMemoryLayout().withName("parent_class"),
+        public static final MemoryLayout LAYOUT = MemoryLayout.structLayout(
+                Object.Class.LAYOUT.withName("parent_class"),
                 ADDRESS.withName("startup"),
                 ADDRESS.withName("activate"),
                 ADDRESS.withName("open"),
@@ -87,29 +76,23 @@ public class Application extends Object {
             super(memoryAddress);
         }
 
-        public static MemoryLayout getMemoryLayout() {
-            return MEMORY_LAYOUT;
+        public <T extends Application> void setStartup(ObjectType<?, T> type, StartupFunc<T> startup) {
+            MemorySegment upcallStub = StartupFunc.Raw.of(type, startup).toUpcallStub();
+            getMemorySegment().set(ADDRESS, LAYOUT.byteOffset(groupElement("startup")), upcallStub);
         }
 
-        public <T extends Application> void setStartup(Function<MemoryAddress, T> constructor, StartupFunc<T> startup) {
-            MemorySegment upcallStub = StartupFunc.Raw.of(constructor, startup).toUpcallStub();
-            getMemorySegment().set(ADDRESS, MEMORY_LAYOUT.byteOffset(groupElement("startup")), upcallStub);
+        public <T extends Application> void setActivate(ObjectType<?, T> type, ActivateFunc<T> activate) {
+            MemorySegment upcallStub = ActivateFunc.Raw.of(type, activate).toUpcallStub();
+            getMemorySegment().set(ADDRESS, LAYOUT.byteOffset(groupElement("activate")), upcallStub);
         }
 
-        public <T extends Application> void setActivate(
-                Function<MemoryAddress, T> constructor, ActivateFunc<T> activate) {
-            MemorySegment upcallStub =
-                    ActivateFunc.Raw.of(constructor, activate).toUpcallStub();
-            getMemorySegment().set(ADDRESS, MEMORY_LAYOUT.byteOffset(groupElement("activate")), upcallStub);
-        }
-
-        public <T extends Application> void setOpen(Function<MemoryAddress, T> constructor, OpenFunc<T> open) {
-            MemorySegment upcallStub = OpenFunc.Raw.of(constructor, open).toUpcallStub();
-            getMemorySegment().set(ADDRESS, MEMORY_LAYOUT.byteOffset(groupElement("open")), upcallStub);
+        public <T extends Application> void setOpen(ObjectType<?, T> type, OpenFunc<T> open) {
+            MemorySegment upcallStub = OpenFunc.Raw.of(type, open).toUpcallStub();
+            getMemorySegment().set(ADDRESS, LAYOUT.byteOffset(groupElement("open")), upcallStub);
         }
 
         private MemorySegment getMemorySegment() {
-            return MemorySegment.ofAddress(getMemoryAddress(), MEMORY_LAYOUT.byteSize(), MemorySession.global());
+            return MemorySegment.ofAddress(getMemoryAddress(), LAYOUT.byteSize(), MemorySession.global());
         }
 
         public interface StartupFunc<T extends Application> {
@@ -119,9 +102,8 @@ public class Application extends Object {
                 MethodHandle HANDLE = BindingSupport.callThrowing(() -> MethodHandles.lookup()
                         .findVirtual(Raw.class, "startup", MethodType.methodType(void.class, MemoryAddress.class)));
 
-                static <T extends Application> Raw of(
-                        Function<MemoryAddress, T> constructor, StartupFunc<T> startupFunc) {
-                    return (application) -> startupFunc.startup(constructor.apply(application));
+                static <T extends Application> Raw of(ObjectType<?, T> type, StartupFunc<T> startupFunc) {
+                    return (application) -> startupFunc.startup(type.wrapInstance(application));
                 }
 
                 void startup(MemoryAddress application);
@@ -140,9 +122,8 @@ public class Application extends Object {
                 MethodHandle HANDLE = BindingSupport.callThrowing(() -> MethodHandles.lookup()
                         .findVirtual(Raw.class, "activate", MethodType.methodType(void.class, MemoryAddress.class)));
 
-                static <T extends Application> Raw of(
-                        Function<MemoryAddress, T> constructor, ActivateFunc<T> activateFunc) {
-                    return (application) -> activateFunc.activate(constructor.apply(application));
+                static <T extends Application> Raw of(ObjectType<?, T> type, ActivateFunc<T> activateFunc) {
+                    return (application) -> activateFunc.activate(type.wrapInstance(application));
                 }
 
                 void activate(MemoryAddress application);
@@ -169,10 +150,10 @@ public class Application extends Object {
                                         int.class,
                                         MemoryAddress.class)));
 
-                static <T extends Application> Raw of(Function<MemoryAddress, T> constructor, OpenFunc<T> openFunc) {
+                static <T extends Application> Raw of(ObjectType<?, T> type, OpenFunc<T> openFunc) {
                     return (application, files, nFiles, hint) -> openFunc.open(
-                            constructor.apply(application),
-                            BindingSupport.toList(files, nFiles, ADDRESS, File::ofMemoryAddress),
+                            type.wrapInstance(application),
+                            BindingSupport.toList(files, nFiles, ADDRESS, File.TYPE::wrapInstance),
                             hint.getUtf8String(0));
                 }
 

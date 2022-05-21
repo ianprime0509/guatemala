@@ -2,7 +2,7 @@ package dev.ianjohnson.guatemala.examples.gtk;
 
 import dev.ianjohnson.guatemala.gio.ApplicationFlag;
 import dev.ianjohnson.guatemala.gio.File;
-import dev.ianjohnson.guatemala.gobject.Type;
+import dev.ianjohnson.guatemala.gobject.ObjectType;
 import dev.ianjohnson.guatemala.gobject.TypeFlag;
 import dev.ianjohnson.guatemala.gobject.Value;
 import dev.ianjohnson.guatemala.gtk.Application;
@@ -20,12 +20,12 @@ public class ApplicationSubclass {
     }
 
     private static class ExampleApp extends Application {
-        private static final Type TYPE = Type.registerStatic(
-                Application.getType(),
+        public static final ObjectType<Class, ExampleApp> TYPE = ObjectType.register(
+                Application.TYPE,
                 "ExampleApp",
                 Class::new,
                 Class::init,
-                ExampleApp::ofMemoryAddress,
+                ExampleApp::new,
                 ExampleApp::init,
                 EnumSet.noneOf(TypeFlag.class));
 
@@ -36,14 +36,9 @@ public class ApplicationSubclass {
         public static ExampleApp of() {
             return newWithProperties(
                     TYPE,
-                    ExampleApp::new,
                     Map.of(
                             "application-id", Value.of("org.gtk.exampleapp"),
                             "flags", Value.of(ApplicationFlag.toInt(EnumSet.of(ApplicationFlag.HANDLES_OPEN)))));
-        }
-
-        public static ExampleApp ofMemoryAddress(MemoryAddress memoryAddress) {
-            return ofMemoryAddress(memoryAddress, ExampleApp::new);
         }
 
         private void init() {}
@@ -61,9 +56,38 @@ public class ApplicationSubclass {
             }
 
             void init() {
-                setActivate(ExampleApp::ofMemoryAddress, ExampleApp::activate);
-                setOpen(ExampleApp::ofMemoryAddress, ExampleApp::open);
+                setActivate(TYPE, ExampleApp::activate);
+                setOpen(TYPE, ExampleApp::open);
             }
+        }
+    }
+
+    private static class ExampleAppWindow extends ApplicationWindow {
+        public static final ObjectType<Class, ExampleAppWindow> TYPE = ObjectType.register(
+                ApplicationWindow.TYPE,
+                "ExampleAppWindow",
+                Class::new,
+                Class::init,
+                ExampleAppWindow::new,
+                ExampleAppWindow::init,
+                EnumSet.noneOf(TypeFlag.class));
+
+        protected ExampleAppWindow(MemoryAddress memoryAddress) {
+            super(memoryAddress);
+        }
+
+        public static ExampleAppWindow of(ExampleApp app) {
+            return newWithProperties(TYPE, Map.of("application", Value.of(app)));
+        }
+
+        private void init() {}
+
+        private static class Class extends ApplicationWindow.Class {
+            protected Class(MemoryAddress memoryAddress) {
+                super(memoryAddress);
+            }
+
+            void init() {}
         }
     }
 }

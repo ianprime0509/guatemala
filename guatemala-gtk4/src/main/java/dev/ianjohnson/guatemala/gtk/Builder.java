@@ -4,6 +4,7 @@ import dev.ianjohnson.guatemala.core.BindingSupport;
 import dev.ianjohnson.guatemala.glib.Error;
 import dev.ianjohnson.guatemala.glib.GLibException;
 import dev.ianjohnson.guatemala.gobject.Object;
+import dev.ianjohnson.guatemala.gobject.ObjectType;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -14,7 +15,6 @@ import java.lang.foreign.MemorySegment;
 import java.lang.foreign.MemorySession;
 import java.lang.invoke.MethodHandle;
 import java.nio.charset.StandardCharsets;
-import java.util.function.Function;
 
 import static java.lang.foreign.ValueLayout.*;
 
@@ -26,16 +26,15 @@ public class Builder extends Object {
     private static final MethodHandle GTK_BUILDER_NEW =
             BindingSupport.lookup("gtk_builder_new", FunctionDescriptor.of(ADDRESS));
 
+    public static final ObjectType<Class, Builder> TYPE =
+            ObjectType.ofTypeGetter("gtk_builder_get_type", Class::new, Builder::new);
+
     protected Builder(MemoryAddress memoryAddress) {
         super(memoryAddress);
     }
 
     public static Builder of() {
-        return newWithOwnership(Builder::new, () -> (MemoryAddress) GTK_BUILDER_NEW.invoke());
-    }
-
-    public static Builder ofMemoryAddress(MemoryAddress memoryAddress) {
-        return ofMemoryAddress(memoryAddress, Builder::new);
+        return TYPE.wrapInstanceOwning(BindingSupport.callThrowing(() -> (MemoryAddress) GTK_BUILDER_NEW.invoke()));
     }
 
     public void addFromClasspath(String resource) throws IOException {
@@ -62,13 +61,13 @@ public class Builder extends Object {
         });
     }
 
-    public <T extends Object> T getObject(String name, Function<MemoryAddress, T> constructor) {
+    public <T extends Object> T getObject(String name, ObjectType<?, T> type) {
         MemoryAddress memoryAddress = BindingSupport.callThrowing(local ->
                 (MemoryAddress) GTK_BUILDER_GET_OBJECT.invoke(getMemoryAddress(), local.allocateUtf8String(name)));
         if (MemoryAddress.NULL.equals(memoryAddress)) {
             throw new IllegalArgumentException("No object named '" + name + "' defined in builder");
         }
-        return constructor.apply(memoryAddress);
+        return type.wrapInstance(memoryAddress);
     }
 
     public static class Class extends Object.Class {

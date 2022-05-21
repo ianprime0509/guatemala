@@ -1,6 +1,7 @@
 package dev.ianjohnson.guatemala.gtk;
 
 import dev.ianjohnson.guatemala.core.BindingSupport;
+import dev.ianjohnson.guatemala.gobject.ObjectType;
 
 import java.lang.foreign.FunctionDescriptor;
 import java.lang.foreign.MemoryAddress;
@@ -25,12 +26,11 @@ public class Window extends Widget {
     private static final MethodHandle GTK_WINDOW_SET_TITLE =
             BindingSupport.lookup("gtk_window_set_title", FunctionDescriptor.ofVoid(ADDRESS, ADDRESS));
 
+    public static final ObjectType<Class, Window> TYPE =
+            ObjectType.ofTypeGetter("gtk_window_get_type", Class::new, Window::new);
+
     protected Window(MemoryAddress memoryAddress) {
         super(memoryAddress);
-    }
-
-    public static Window ofMemoryAddress(MemoryAddress memoryAddress) {
-        return ofMemoryAddress(memoryAddress, Window::new);
     }
 
     public void close() {

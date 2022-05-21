@@ -25,16 +25,16 @@ public class HelloWorldBuilder {
             throw new AssertionError(e);
         }
 
-        Window window = builder.getObject("window", Window::ofMemoryAddress);
+        Window window = builder.getObject("window", Window.TYPE);
         window.setApplication(app);
 
-        Button button1 = builder.getObject("button1", Button::ofMemoryAddress);
+        Button button1 = builder.getObject("button1", Button.TYPE);
         button1.connectClicked(HelloWorldBuilder::printHello);
 
-        Button button2 = builder.getObject("button2", Button::ofMemoryAddress);
+        Button button2 = builder.getObject("button2", Button.TYPE);
         button2.connectClicked(HelloWorldBuilder::printHello);
 
-        Button quitButton = builder.getObject("quit", Button::ofMemoryAddress);
+        Button quitButton = builder.getObject("quit", Button.TYPE);
         quitButton.connectClicked(window::close);
 
         window.show();
