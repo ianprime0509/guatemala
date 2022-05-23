@@ -1,4 +1,4 @@
-package dev.ianjohnson.guatemala.examples.gtk;
+package dev.ianjohnson.guatemala.examples.gtk.grid;
 
 import dev.ianjohnson.guatemala.gio.ApplicationFlag;
 import dev.ianjohnson.guatemala.gtk.Application;
@@ -9,7 +9,7 @@ import dev.ianjohnson.guatemala.gtk.Grid;
 import java.util.EnumSet;
 
 // https://docs.gtk.org/gtk4/getting_started.html#packing-buttons
-public class HelloWorldGrid {
+class Main {
     public static void main(String[] args) {
         Application app = Application.of("org.gtk.example", EnumSet.noneOf(ApplicationFlag.class));
         app.connectActivate(() -> activate(app));
@@ -25,12 +25,12 @@ public class HelloWorldGrid {
         window.setChild(grid);
 
         Button button1 = Button.ofLabel("Button 1");
-        button1.connectClicked(HelloWorldGrid::printHello);
+        button1.connectClicked(Main::printHello);
 
         grid.attach(button1, 0, 0, 1, 1);
 
         Button button2 = Button.ofLabel("Button 2");
-        button2.connectClicked(HelloWorldGrid::printHello);
+        button2.connectClicked(Main::printHello);
 
         grid.attach(button2, 1, 0, 1, 1);
 

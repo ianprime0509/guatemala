@@ -1,12 +1,13 @@
-package dev.ianjohnson.guatemala.examples.gtk;
+package dev.ianjohnson.guatemala.examples.gtk.empty;
 
 import dev.ianjohnson.guatemala.gio.ApplicationFlag;
-import dev.ianjohnson.guatemala.gtk.*;
+import dev.ianjohnson.guatemala.gtk.Application;
+import dev.ianjohnson.guatemala.gtk.ApplicationWindow;
 
 import java.util.EnumSet;
 
-// https://docs.gtk.org/gtk4/getting_started.html#hello-world-in-c
-class HelloWorld {
+// https://docs.gtk.org/gtk4/getting_started.html#basics
+class Main {
     public static void main(String[] args) {
         Application app = Application.of("org.gtk.example", EnumSet.noneOf(ApplicationFlag.class));
         app.connectActivate(() -> activate(app));
@@ -17,20 +18,6 @@ class HelloWorld {
         ApplicationWindow window = ApplicationWindow.of(app);
         window.setTitle("Window");
         window.setDefaultSize(200, 200);
-
-        Box box = Box.of(Orientation.VERTICAL, 0);
-        box.setHalign(Align.CENTER);
-        box.setValign(Align.CENTER);
-
-        window.setChild(box);
-
-        Button button = Button.ofLabel("Hello World");
-
-        button.connectClicked(() -> System.out.println("Hello World"));
-        button.connectClicked(window::destroy);
-
-        box.append(button);
-
         window.show();
     }
 }

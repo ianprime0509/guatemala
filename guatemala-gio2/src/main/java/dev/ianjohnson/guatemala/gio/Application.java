@@ -3,14 +3,12 @@ package dev.ianjohnson.guatemala.gio;
 import dev.ianjohnson.guatemala.core.BindingSupport;
 import dev.ianjohnson.guatemala.gobject.Object;
 import dev.ianjohnson.guatemala.gobject.ObjectType;
-import dev.ianjohnson.guatemala.gobject.Type;
 
 import java.lang.foreign.*;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
 import java.util.List;
-import java.util.function.Function;
 
 import static dev.ianjohnson.guatemala.glib.Types.GINT;
 import static dev.ianjohnson.guatemala.glib.Types.GPOINTER;
@@ -20,7 +18,7 @@ import static java.lang.foreign.ValueLayout.JAVA_INT;
 
 public class Application extends Object {
     public static final MemoryLayout LAYOUT =
-            MemoryLayout.structLayout(Object.LAYOUT.withName("parent_instance"), ADDRESS.withName("priv"));
+            BindingSupport.structLayout(Object.LAYOUT.withName("parent_instance"), ADDRESS.withName("priv"));
 
     private static final MethodHandle G_APPLICATION_RUN =
             BindingSupport.lookup("g_application_run", FunctionDescriptor.of(JAVA_INT, ADDRESS, JAVA_INT, ADDRESS));
@@ -54,7 +52,7 @@ public class Application extends Object {
     }
 
     public static class Class extends Object.Class {
-        public static final MemoryLayout LAYOUT = MemoryLayout.structLayout(
+        public static final MemoryLayout LAYOUT = BindingSupport.structLayout(
                 Object.Class.LAYOUT.withName("parent_class"),
                 ADDRESS.withName("startup"),
                 ADDRESS.withName("activate"),
@@ -68,6 +66,7 @@ public class Application extends Object {
                 ADDRESS.withName("run_mainloop"),
                 ADDRESS.withName("shutdown"),
                 ADDRESS.withName("dbus_register"),
+                ADDRESS.withName("dbus_unregister"),
                 ADDRESS.withName("handle_local_options"),
                 ADDRESS.withName("name_lost"),
                 MemoryLayout.sequenceLayout(7, GPOINTER).withName("padding"));

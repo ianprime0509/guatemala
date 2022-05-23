@@ -1,10 +1,12 @@
 package dev.ianjohnson.guatemala.gobject;
 
 import dev.ianjohnson.guatemala.core.BindingSupport;
+import dev.ianjohnson.guatemala.core.Flag;
 
 import java.lang.foreign.*;
 import java.lang.invoke.MethodHandle;
 import java.util.Objects;
+import java.util.Set;
 
 import static dev.ianjohnson.guatemala.glib.Types.GINT;
 import static java.lang.foreign.MemoryLayout.PathElement.groupElement;
@@ -12,7 +14,7 @@ import static java.lang.foreign.ValueLayout.ADDRESS;
 import static java.lang.foreign.ValueLayout.JAVA_LONG;
 
 public final class Value {
-    public static final MemoryLayout LAYOUT = MemoryLayout.structLayout(
+    public static final MemoryLayout LAYOUT = BindingSupport.structLayout(
             Type.LAYOUT.withName("g_type"),
             // We don't use the data field, but it needs to be present to get the correct layout
             MemoryLayout.paddingLayout(128).withName("data"));
@@ -20,7 +22,7 @@ public final class Value {
     private static final MethodHandle G_VALUE_COPY =
             BindingSupport.lookup("g_value_copy", FunctionDescriptor.ofVoid(ADDRESS, ADDRESS));
     private static final MethodHandle G_VALUE_INIT =
-            BindingSupport.lookup("g_value_init", FunctionDescriptor.of(ADDRESS, ADDRESS, ADDRESS));
+            BindingSupport.lookup("g_value_init", FunctionDescriptor.of(ADDRESS, ADDRESS, JAVA_LONG));
     private static final MethodHandle G_VALUE_SET_INT =
             BindingSupport.lookup("g_value_set_int", FunctionDescriptor.ofVoid(ADDRESS, GINT));
     private static final MethodHandle G_VALUE_SET_OBJECT =
@@ -48,6 +50,10 @@ public final class Value {
         Value v = ofUninitialized();
         v.set(value);
         return v;
+    }
+
+    public static Value of(Set<? extends Flag> flags) {
+        return of(Flag.toInt(flags));
     }
 
     public static Value of(Object value) {

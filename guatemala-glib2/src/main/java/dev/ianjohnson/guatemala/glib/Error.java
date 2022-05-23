@@ -11,7 +11,7 @@ import static java.lang.foreign.ValueLayout.ADDRESS;
 import static java.lang.foreign.ValueLayout.JAVA_INT;
 
 public final class Error {
-    public static final MemoryLayout LAYOUT = MemoryLayout.structLayout(
+    public static final MemoryLayout LAYOUT = BindingSupport.structLayout(
             JAVA_INT.withName("domain"), JAVA_INT.withName("code"), ADDRESS.withName("message"));
 
     private static final MethodHandle G_ERROR_FREE =
@@ -23,12 +23,12 @@ public final class Error {
         this.memorySegment = Objects.requireNonNull(memorySegment, "memorySegment");
     }
 
-    public static Error wrap(MemorySegment memorySegment) {
+    public static Error view(MemorySegment memorySegment) {
         return new Error(memorySegment);
     }
 
-    public static Error wrap(MemoryAddress memoryAddress, MemorySession memorySession) {
-        return wrap(MemorySegment.ofAddress(memoryAddress, LAYOUT.byteSize(), memorySession));
+    public static Error view(MemoryAddress memoryAddress, MemorySession memorySession) {
+        return view(MemorySegment.ofAddress(memoryAddress, LAYOUT.byteSize(), memorySession));
     }
 
     public static Error wrapOwning(MemorySegment memorySegment) {

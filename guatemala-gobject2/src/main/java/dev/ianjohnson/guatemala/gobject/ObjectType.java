@@ -1,14 +1,8 @@
 package dev.ianjohnson.guatemala.gobject;
 
-import dev.ianjohnson.guatemala.core.BindingSupport;
-import dev.ianjohnson.guatemala.core.OwningWrapper;
-import dev.ianjohnson.guatemala.core.Viewer;
-import dev.ianjohnson.guatemala.core.Wrapper;
+import dev.ianjohnson.guatemala.core.*;
 
-import java.lang.foreign.FunctionDescriptor;
-import java.lang.foreign.MemoryAddress;
-import java.lang.foreign.MemorySegment;
-import java.lang.foreign.MemorySession;
+import java.lang.foreign.*;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
@@ -17,6 +11,7 @@ import java.util.Set;
 
 import static java.lang.foreign.ValueLayout.*;
 
+// TODO: check types when viewing, etc.
 public final class ObjectType<C extends Object.Class, T extends Object> extends Type {
     private static final MethodHandle G_OBJECT_REF =
             BindingSupport.lookup("g_object_ref", FunctionDescriptor.ofVoid(ADDRESS));
@@ -63,22 +58,27 @@ public final class ObjectType<C extends Object.Class, T extends Object> extends 
     public static <C extends Object.Class, T extends Object> ObjectType<C, T> register(
             ObjectType<? super C, ? super T> parentType,
             String typeName,
+            MemoryLayout classLayout,
             Viewer<C> classViewer,
             ClassInitFunc<C> classInitFunc,
+            MemoryLayout instanceLayout,
             Viewer<T> instanceViewer,
             InstanceInitFunc<T> instanceInitFunc,
             Set<TypeFlag> typeFlags) {
-        TypeQuery parentTypeInfo = parentType
-                .query()
-                .orElseThrow(() -> new IllegalArgumentException("Invalid parent type: " + parentType));
+        if (classLayout.byteSize() > Integer.MAX_VALUE) {
+            throw new IllegalArgumentException("Class size is too large");
+        }
+        if (instanceLayout.byteSize() > Integer.MAX_VALUE) {
+            throw new IllegalArgumentException("Instance size is too large");
+        }
         long raw = BindingSupport.callThrowing(local -> (long) G_TYPE_REGISTER_STATIC_SIMPLE.invoke(
                 parentType.getRaw(),
                 local.allocateUtf8String(typeName),
-                parentTypeInfo.getClassSize(),
+                (int) classLayout.byteSize(),
                 ClassInitFunc.Raw.of(classViewer, classInitFunc).toUpcallStub(),
-                parentTypeInfo.getInstanceSize(),
+                (int) instanceLayout.byteSize(),
                 InstanceInitFunc.Raw.of(instanceViewer, instanceInitFunc).toUpcallStub(),
-                TypeFlag.toInt(typeFlags)));
+                Flag.toInt(typeFlags)));
         return ofRaw(raw, classViewer, instanceViewer);
     }
 

@@ -1,5 +1,7 @@
 package dev.ianjohnson.guatemala.gobject;
 
+import dev.ianjohnson.guatemala.core.BindingSupport;
+
 import java.lang.foreign.MemoryLayout;
 import java.lang.foreign.MemorySegment;
 import java.lang.foreign.MemorySession;
@@ -9,7 +11,7 @@ import static java.lang.foreign.MemoryLayout.PathElement.groupElement;
 import static java.lang.foreign.ValueLayout.*;
 
 public final class TypeQuery {
-    public static final MemoryLayout LAYOUT = MemoryLayout.structLayout(
+    public static final MemoryLayout LAYOUT = BindingSupport.structLayout(
             JAVA_LONG.withName("type"),
             ADDRESS.withName("type_name"),
             JAVA_INT.withName("class_size"),
@@ -29,7 +31,7 @@ public final class TypeQuery {
         return new TypeQuery(memorySession.allocate(LAYOUT));
     }
 
-    public static TypeQuery wrap(MemorySegment memorySegment) {
+    public static TypeQuery view(MemorySegment memorySegment) {
         return new TypeQuery(memorySegment);
     }
 

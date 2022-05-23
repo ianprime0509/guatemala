@@ -1,8 +1,8 @@
 package dev.ianjohnson.guatemala.gobject;
 
-import java.util.Set;
+import dev.ianjohnson.guatemala.core.Flag;
 
-public enum TypeFlag {
+public enum TypeFlag implements Flag {
     ABSTRACT(16),
     VALUE_ABSTRACT(32),
     FINAL(64);
@@ -13,14 +13,7 @@ public enum TypeFlag {
         this.value = value;
     }
 
-    public static int toInt(Set<TypeFlag> flags) {
-        int value = 0;
-        for (TypeFlag flag : flags) {
-            value |= flag.getValue();
-        }
-        return value;
-    }
-
+    @Override
     public int getValue() {
         return value;
     }

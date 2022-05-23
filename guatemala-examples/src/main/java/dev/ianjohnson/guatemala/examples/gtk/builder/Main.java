@@ -1,4 +1,4 @@
-package dev.ianjohnson.guatemala.examples.gtk;
+package dev.ianjohnson.guatemala.examples.gtk.builder;
 
 import dev.ianjohnson.guatemala.gio.ApplicationFlag;
 import dev.ianjohnson.guatemala.gtk.Application;
@@ -10,7 +10,7 @@ import java.io.IOException;
 import java.util.EnumSet;
 
 // https://docs.gtk.org/gtk4/getting_started.html#packing-buttons-with-gtkbuilder
-public class HelloWorldBuilder {
+class Main {
     public static void main(String[] args) {
         Application app = Application.of("org.gtk.example", EnumSet.noneOf(ApplicationFlag.class));
         app.connectActivate(() -> activate(app));
@@ -20,7 +20,7 @@ public class HelloWorldBuilder {
     private static void activate(Application app) {
         Builder builder = Builder.of();
         try {
-            builder.addFromClasspath("dev/ianjohnson/guatemala/examples/gtk/builder.ui");
+            builder.addFromClasspathResource(Main.class, "builder.ui");
         } catch (IOException e) {
             throw new AssertionError(e);
         }
@@ -29,10 +29,10 @@ public class HelloWorldBuilder {
         window.setApplication(app);
 
         Button button1 = builder.getObject("button1", Button.TYPE);
-        button1.connectClicked(HelloWorldBuilder::printHello);
+        button1.connectClicked(Main::printHello);
 
         Button button2 = builder.getObject("button2", Button.TYPE);
-        button2.connectClicked(HelloWorldBuilder::printHello);
+        button2.connectClicked(Main::printHello);
 
         Button quitButton = builder.getObject("quit", Button.TYPE);
         quitButton.connectClicked(window::close);

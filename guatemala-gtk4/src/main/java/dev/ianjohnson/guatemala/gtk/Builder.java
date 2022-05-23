@@ -37,8 +37,8 @@ public class Builder extends Object {
         return TYPE.wrapInstanceOwning(BindingSupport.callThrowing(() -> (MemoryAddress) GTK_BUILDER_NEW.invoke()));
     }
 
-    public void addFromClasspath(String resource) throws IOException {
-        InputStream is = Thread.currentThread().getContextClassLoader().getResourceAsStream(resource);
+    public void addFromClasspathResource(java.lang.Class<?> clazz, String resource) throws IOException {
+        InputStream is = clazz.getResourceAsStream(resource);
         if (is == null) {
             throw new IllegalArgumentException("Classpath resource not found: " + resource);
         }

@@ -18,6 +18,7 @@ public final class Types {
     public static final ValueLayout.OfDouble GDOUBLE = JAVA_DOUBLE;
     public static final ValueLayout GSIZE = JAVA_LONG;
     public static final ValueLayout.OfAddress GPOINTER = ADDRESS;
+    public static final ValueLayout.OfAddress GCONSTPOINTER = ADDRESS;
 
     private Types() {}
 }

@@ -12,7 +12,7 @@ import static dev.ianjohnson.guatemala.glib.Types.GSIZE;
 import static java.lang.foreign.ValueLayout.*;
 
 public class Object {
-    public static final MemoryLayout LAYOUT = MemoryLayout.structLayout(
+    public static final MemoryLayout LAYOUT = BindingSupport.structLayout(
             TypeInstance.LAYOUT.withName("g_type_instance"), JAVA_INT.withName("ref_count"), ADDRESS.withName("qdata"));
 
     private static final MethodHandle G_OBJECT_NEW_WITH_PROPERTIES = BindingSupport.lookup(
@@ -45,8 +45,12 @@ public class Object {
         return type.wrapInstanceOwning(memoryAddress);
     }
 
-    public MemoryAddress getMemoryAddress() {
+    public final MemoryAddress getMemoryAddress() {
         return memoryAddress;
+    }
+
+    public final <T extends Object> T cast(ObjectType<?, T> type) {
+        return type.wrapInstance(getMemoryAddress());
     }
 
     public void connectSignal(String signal, MethodHandle handler, FunctionDescriptor functionDescriptor) {
@@ -61,7 +65,7 @@ public class Object {
     }
 
     public static class Class {
-        public static final MemoryLayout LAYOUT = MemoryLayout.structLayout(
+        public static final MemoryLayout LAYOUT = BindingSupport.structLayout(
                 TypeClass.LAYOUT.withName("g_type_class"),
                 ADDRESS.withName("construct_properties"),
                 ADDRESS.withName("constructor"),

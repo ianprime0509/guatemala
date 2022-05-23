@@ -36,6 +36,23 @@ public final class BindingSupport {
         CLEANER.register(obj, action);
     }
 
+    public static GroupLayout structLayout(MemoryLayout... elements) {
+        List<MemoryLayout> elementsWithPadding = new ArrayList<>(elements.length);
+        long currentOffset = 0;
+        for (MemoryLayout e : elements) {
+            long paddingBits = currentOffset % e.bitAlignment();
+            if (paddingBits > 0) {
+                paddingBits = e.bitAlignment() - paddingBits;
+                elementsWithPadding.add(MemoryLayout.paddingLayout(paddingBits));
+                currentOffset += paddingBits;
+            }
+            assert currentOffset % e.bitAlignment() == 0;
+            elementsWithPadding.add(e);
+            currentOffset += e.bitSize();
+        }
+        return MemoryLayout.structLayout(elementsWithPadding.toArray(new MemoryLayout[0]));
+    }
+
     public static <T> List<T> toList(
             MemoryAddress memoryAddress,
             int n,

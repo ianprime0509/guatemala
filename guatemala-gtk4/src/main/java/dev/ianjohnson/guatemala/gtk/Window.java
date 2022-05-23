@@ -5,12 +5,16 @@ import dev.ianjohnson.guatemala.gobject.ObjectType;
 
 import java.lang.foreign.FunctionDescriptor;
 import java.lang.foreign.MemoryAddress;
+import java.lang.foreign.MemoryLayout;
 import java.lang.invoke.MethodHandle;
 
+import static dev.ianjohnson.guatemala.glib.Types.GPOINTER;
 import static java.lang.foreign.ValueLayout.ADDRESS;
 import static java.lang.foreign.ValueLayout.JAVA_INT;
 
 public class Window extends Widget {
+    public static final MemoryLayout LAYOUT = BindingSupport.structLayout(Widget.LAYOUT.withName("parent_instance"));
+
     private static final MethodHandle GTK_WINDOW_CLOSE =
             BindingSupport.lookup("gtk_window_close", FunctionDescriptor.ofVoid(ADDRESS));
     private static final MethodHandle GTK_WINDOW_DESTROY =
@@ -64,6 +68,15 @@ public class Window extends Widget {
     }
 
     public static class Class extends Widget.Class {
+        public static final MemoryLayout LAYOUT = BindingSupport.structLayout(
+                Widget.Class.LAYOUT.withName("parent_class"),
+                ADDRESS.withName("activate_focus"),
+                ADDRESS.withName("activate_default"),
+                ADDRESS.withName("keys_changed"),
+                ADDRESS.withName("enable_debugging"),
+                ADDRESS.withName("close_request"),
+                MemoryLayout.sequenceLayout(8, GPOINTER).withName("padding"));
+
         protected Class(MemoryAddress memoryAddress) {
             super(memoryAddress);
         }

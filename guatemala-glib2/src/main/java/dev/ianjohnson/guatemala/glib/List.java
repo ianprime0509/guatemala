@@ -1,5 +1,7 @@
 package dev.ianjohnson.guatemala.glib;
 
+import dev.ianjohnson.guatemala.core.BindingSupport;
+
 import java.lang.foreign.MemoryAddress;
 import java.lang.foreign.MemoryLayout;
 import java.lang.foreign.MemorySegment;
@@ -13,7 +15,7 @@ import static java.lang.foreign.ValueLayout.ADDRESS;
 
 public final class List {
     public static final MemoryLayout LAYOUT =
-            MemoryLayout.structLayout(GPOINTER.withName("data"), ADDRESS.withName("next"), ADDRESS.withName("prev"));
+            BindingSupport.structLayout(GPOINTER.withName("data"), ADDRESS.withName("next"), ADDRESS.withName("prev"));
 
     private final MemorySegment memorySegment;
 
@@ -21,12 +23,12 @@ public final class List {
         this.memorySegment = Objects.requireNonNull(memorySegment, "memorySegment");
     }
 
-    public static List wrap(MemorySegment memorySegment) {
+    public static List view(MemorySegment memorySegment) {
         return new List(memorySegment);
     }
 
-    public static List wrap(MemoryAddress memoryAddress, MemorySession memorySession) {
-        return wrap(MemorySegment.ofAddress(memoryAddress, LAYOUT.byteSize(), memorySession));
+    public static List view(MemoryAddress memoryAddress, MemorySession memorySession) {
+        return view(MemorySegment.ofAddress(memoryAddress, LAYOUT.byteSize(), memorySession));
     }
 
     public MemorySegment getMemorySegment() {

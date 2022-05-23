@@ -1,8 +1,8 @@
 package dev.ianjohnson.guatemala.gio;
 
-import java.util.Set;
+import dev.ianjohnson.guatemala.core.Flag;
 
-public enum ApplicationFlag {
+public enum ApplicationFlag implements Flag {
     IS_SERVICE(1),
     IS_LAUNCHER(2),
     HANDLES_OPEN(4),
@@ -19,14 +19,7 @@ public enum ApplicationFlag {
         this.value = value;
     }
 
-    public static int toInt(Set<ApplicationFlag> flags) {
-        int value = 0;
-        for (ApplicationFlag flag : flags) {
-            value |= flag.getValue();
-        }
-        return value;
-    }
-
+    @Override
     public int getValue() {
         return value;
     }
