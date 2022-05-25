@@ -40,11 +40,11 @@ public final class BindingSupport {
         List<MemoryLayout> elementsWithPadding = new ArrayList<>(elements.length);
         long currentOffset = 0;
         for (MemoryLayout e : elements) {
-            long paddingBits = currentOffset % e.bitAlignment();
-            if (paddingBits > 0) {
-                paddingBits = e.bitAlignment() - paddingBits;
-                elementsWithPadding.add(MemoryLayout.paddingLayout(paddingBits));
-                currentOffset += paddingBits;
+            long extraOffset = currentOffset % e.bitAlignment();
+            if (extraOffset > 0) {
+                MemoryLayout padding = MemoryLayout.paddingLayout(e.bitAlignment() - extraOffset);
+                elementsWithPadding.add(padding);
+                currentOffset += padding.bitSize();
             }
             assert currentOffset % e.bitAlignment() == 0;
             elementsWithPadding.add(e);

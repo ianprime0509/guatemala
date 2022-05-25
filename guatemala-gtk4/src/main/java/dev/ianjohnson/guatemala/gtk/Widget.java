@@ -11,24 +11,28 @@ import java.lang.foreign.MemoryAddress;
 import java.lang.foreign.MemoryLayout;
 import java.lang.invoke.MethodHandle;
 
+import static dev.ianjohnson.guatemala.glib.Types.GBOOLEAN;
 import static dev.ianjohnson.guatemala.glib.Types.GPOINTER;
 import static java.lang.foreign.ValueLayout.*;
 
 public class Widget extends InitiallyUnowned {
     public static final MemoryLayout LAYOUT =
             BindingSupport.structLayout(InitiallyUnowned.LAYOUT.withName("parent_instance"), ADDRESS.withName("priv"));
+    public static final ObjectType<Class, Widget> TYPE =
+            ObjectType.ofTypeGetter("gtk_widget_get_type", Class::new, Widget::new);
 
     private static final MethodHandle GTK_WIDGET_INIT_TEMPLATE =
             BindingSupport.lookup("gtk_widget_init_template", FunctionDescriptor.ofVoid(ADDRESS));
     private static final MethodHandle GTK_WIDGET_SET_HALIGN =
             BindingSupport.lookup("gtk_widget_set_halign", FunctionDescriptor.ofVoid(ADDRESS, JAVA_INT));
+    private static final MethodHandle GTK_WIDGET_SET_HEXPAND =
+            BindingSupport.lookup("gtk_widget_set_hexpand", FunctionDescriptor.ofVoid(ADDRESS, GBOOLEAN));
     private static final MethodHandle GTK_WIDGET_SET_VALIGN =
             BindingSupport.lookup("gtk_widget_set_valign", FunctionDescriptor.ofVoid(ADDRESS, JAVA_INT));
+    private static final MethodHandle GTK_WIDGET_SET_VEXPAND =
+            BindingSupport.lookup("gtk_widget_set_vexpand", FunctionDescriptor.ofVoid(ADDRESS, GBOOLEAN));
     private static final MethodHandle GTK_WIDGET_SHOW =
             BindingSupport.lookup("gtk_widget_show", FunctionDescriptor.ofVoid(ADDRESS));
-
-    public static final ObjectType<Class, Widget> TYPE =
-            ObjectType.ofTypeGetter("gtk_widget_get_type", Class::new, Widget::new);
 
     protected Widget(MemoryAddress memoryAddress) {
         super(memoryAddress);
@@ -42,8 +46,16 @@ public class Widget extends InitiallyUnowned {
         BindingSupport.runThrowing(() -> GTK_WIDGET_SET_HALIGN.invoke(getMemoryAddress(), align.getValue()));
     }
 
+    public void setHexpand(boolean expand) {
+        BindingSupport.runThrowing(() -> GTK_WIDGET_SET_HEXPAND.invoke(getMemoryAddress(), expand));
+    }
+
     public void setValign(Align align) {
         BindingSupport.runThrowing(() -> GTK_WIDGET_SET_VALIGN.invoke(getMemoryAddress(), align.getValue()));
+    }
+
+    public void setVexpand(boolean expand) {
+        BindingSupport.runThrowing(() -> GTK_WIDGET_SET_VEXPAND.invoke(getMemoryAddress(), expand));
     }
 
     public void show() {
