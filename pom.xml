@@ -10,7 +10,9 @@
     <packaging>pom</packaging>
 
     <modules>
+        <module>guatemala-annotations</module>
         <module>guatemala-core</module>
+        <module>guatemala-processor</module>
 
         <module>guatemala-gio2</module>
         <module>guatemala-glib2</module>
@@ -28,6 +30,11 @@
 
     <dependencyManagement>
         <dependencies>
+            <dependency>
+                <groupId>dev.ianjohnson.guatemala</groupId>
+                <artifactId>guatemala-annotations</artifactId>
+                <version>${project.version}</version>
+            </dependency>
             <dependency>
                 <groupId>dev.ianjohnson.guatemala</groupId>
                 <artifactId>guatemala-core</artifactId>
@@ -58,6 +65,11 @@
                 <groupId>org.jetbrains</groupId>
                 <artifactId>annotations</artifactId>
                 <version>23.0.0</version>
+            </dependency>
+            <dependency>
+                <groupId>com.squareup</groupId>
+                <artifactId>javapoet</artifactId>
+                <version>1.13.0</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
