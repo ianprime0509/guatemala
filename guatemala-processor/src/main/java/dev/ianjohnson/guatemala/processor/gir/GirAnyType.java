@@ -2,7 +2,7 @@ package dev.ianjohnson.guatemala.processor.gir;
 
 import org.w3c.dom.Element;
 
-public sealed interface GirAnyType extends GirFieldType permits GirType, GirArrayType {
+public sealed interface GirAnyType extends GirField.Type permits GirType, GirArrayType {
     static boolean canLoad(Element element) {
         return GirType.canLoad(element) || GirArrayType.canLoad(element);
     }

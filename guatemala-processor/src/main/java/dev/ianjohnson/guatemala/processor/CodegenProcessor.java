@@ -1,7 +1,10 @@
 package dev.ianjohnson.guatemala.processor;
 
 import com.squareup.javapoet.*;
-import dev.ianjohnson.guatemala.annotation.*;
+import dev.ianjohnson.guatemala.annotation.ClassBinding;
+import dev.ianjohnson.guatemala.annotation.GirSource;
+import dev.ianjohnson.guatemala.annotation.NamespaceBinding;
+import dev.ianjohnson.guatemala.annotation.NamespaceDependency;
 import dev.ianjohnson.guatemala.processor.gir.*;
 
 import javax.annotation.processing.*;
@@ -9,8 +12,13 @@ import javax.lang.model.SourceVersion;
 import javax.lang.model.element.*;
 import javax.lang.model.util.Elements;
 import java.io.IOException;
+import java.lang.foreign.FunctionDescriptor;
+import java.lang.foreign.MemoryLayout;
+import java.lang.foreign.ValueLayout;
+import java.lang.invoke.MethodHandle;
 import java.nio.file.Path;
 import java.util.*;
+import java.util.stream.Stream;
 
 @SupportedAnnotationTypes("dev.ianjohnson.guatemala.annotation.*")
 @SupportedSourceVersion(SourceVersion.RELEASE_19)
@@ -68,21 +76,10 @@ public final class CodegenProcessor extends AbstractProcessor {
             return;
         }
 
-        GirRecord girClassRecord = namespace.records().get(elem.getSimpleName() + "Class");
-        TypeSpec classImpl = TypeSpec.classBuilder("Class")
-                .addModifiers(Modifier.STATIC, Modifier.FINAL)
-                .addField(layoutField(girClassRecord))
-                .build();
-
         GirClass girClass = namespace.classes().get(elem.getSimpleName().toString());
-        TypeSpec impl = TypeSpec.classBuilder(elem.getSimpleName() + "Impl")
-                .addModifiers(Modifier.FINAL)
-                .addField(layoutField(girClass))
-                .addField(objectTypeField(girClass, elem))
-                .addType(classImpl)
-                .build();
-
-        JavaFile javaFile = JavaFile.builder(packageElem.getQualifiedName().toString(), impl)
+        GirRecord girClassRecord = namespace.records().get(elem.getSimpleName() + "Class");
+        JavaFile javaFile = JavaFile.builder(
+                        packageElem.getQualifiedName().toString(), impl(girClass, girClassRecord, elem))
                 .build();
         try {
             javaFile.writeTo(filer);
@@ -108,9 +105,31 @@ public final class CodegenProcessor extends AbstractProcessor {
         }
     }
 
+    private TypeSpec impl(GirClass type, GirRecord classType, TypeElement elem) {
+        TypeSpec.Builder builder = TypeSpec.classBuilder(elem.getSimpleName() + "Impl")
+                .addModifiers(Modifier.FINAL)
+                .addField(layoutField(type))
+                .addField(objectTypeField(type, elem))
+                .addType(classImpl(classType));
+        type.constructors().forEach(constructor -> builder.addField(bindingField(constructor)));
+        type.functions().forEach(function -> builder.addField(bindingField(function)));
+        type.methods().forEach(method -> builder.addField(bindingField(method)));
+        return builder.build();
+    }
+
+    private TypeSpec classImpl(GirRecord type) {
+        TypeSpec.Builder builder = TypeSpec.classBuilder("Class")
+                .addModifiers(Modifier.STATIC, Modifier.FINAL)
+                .addField(layoutField(type));
+        type.constructors().forEach(constructor -> builder.addField(bindingField(constructor)));
+        type.functions().forEach(function -> builder.addField(bindingField(function)));
+        type.methods().forEach(method -> builder.addField(bindingField(method)));
+        return builder.build();
+    }
+
     private CodeBlock layout(GirType type) {
         if (type.isPointer()) {
-            return CodeBlock.of("$T.ADDRESS", ClassNames.ValueLayout);
+            return CodeBlock.of("$T.ADDRESS", ValueLayout.class);
         } else if (type.isPrimitive()) {
             return CodeBlock.of("$T.$N", ClassNames.Types, type.name().local().toUpperCase(Locale.ROOT));
         } else if (type.isClass()) {
@@ -129,9 +148,9 @@ public final class CodegenProcessor extends AbstractProcessor {
     private CodeBlock layout(GirArrayType type) {
         if (type.fixedSize() != null) {
             return CodeBlock.of(
-                    "$T.sequenceLayout($L, $L)", ClassNames.MemoryLayout, type.fixedSize(), layout(type.elementType()));
+                    "$T.sequenceLayout($L, $L)", MemoryLayout.class, type.fixedSize(), layout(type.elementType()));
         } else {
-            return CodeBlock.of("$T.ADDRESS", ClassNames.ValueLayout);
+            return CodeBlock.of("$T.ADDRESS", ValueLayout.class);
         }
     }
 
@@ -143,19 +162,19 @@ public final class CodegenProcessor extends AbstractProcessor {
         }
     }
 
-    private CodeBlock layout(GirFieldType type) {
+    private CodeBlock layout(GirField.Type type) {
         if (type instanceof GirCallback) {
-            return CodeBlock.of("$T.ADDRESS", ClassNames.ValueLayout);
+            return CodeBlock.of("$T.ADDRESS", ValueLayout.class);
         } else {
             return layout((GirAnyType) type);
         }
     }
 
     private CodeBlock layout(List<GirField> fields) {
-        List<CodeBlock> fieldLayouts = fields.stream()
+        CodeBlock fieldLayouts = fields.stream()
                 .map(field -> CodeBlock.of("$L.withName($S)", layout(field.type()), field.name()))
-                .toList();
-        return CodeBlock.of("$T.structLayout($L)", ClassNames.BindingSupport, CodeBlock.join(fieldLayouts, ", "));
+                .collect(CodeBlock.joining(", "));
+        return CodeBlock.of("$T.structLayout($L)", ClassNames.BindingSupport, fieldLayouts);
     }
 
     private CodeBlock layout(GirClass type) {
@@ -167,13 +186,13 @@ public final class CodegenProcessor extends AbstractProcessor {
     }
 
     private FieldSpec layoutField(GirClass type) {
-        return FieldSpec.builder(ClassNames.MemoryLayout, "LAYOUT", Modifier.STATIC, Modifier.FINAL)
+        return FieldSpec.builder(MemoryLayout.class, "LAYOUT", Modifier.STATIC, Modifier.FINAL)
                 .initializer(layout(type))
                 .build();
     }
 
     private FieldSpec layoutField(GirRecord type) {
-        return FieldSpec.builder(ClassNames.MemoryLayout, "LAYOUT", Modifier.STATIC, Modifier.FINAL)
+        return FieldSpec.builder(MemoryLayout.class, "LAYOUT", Modifier.STATIC, Modifier.FINAL)
                 .initializer(layout(type))
                 .build();
     }
@@ -192,12 +211,35 @@ public final class CodegenProcessor extends AbstractProcessor {
                 .build();
     }
 
+    private FieldSpec bindingField(GirCallable callable) {
+        return FieldSpec.builder(MethodHandle.class, callable.cIdentifier(), Modifier.STATIC, Modifier.FINAL)
+                .initializer(
+                        "$T.lookup($S, $L)",
+                        ClassNames.BindingSupport,
+                        callable.cIdentifier(),
+                        functionDescriptor(callable))
+                .build();
+    }
+
+    private CodeBlock functionDescriptor(GirCallable callable) {
+        List<CodeBlock> parameterLayouts = callable.parameters().stream()
+                .map(parameter -> layout(parameter.type()))
+                .toList();
+        if (GirType.VOID.equals(callable.returnValue().type())) {
+            return CodeBlock.of("$T.ofVoid($L)", FunctionDescriptor.class, CodeBlock.join(parameterLayouts, ", "));
+        } else {
+            return CodeBlock.of(
+                    "$T.of($L)",
+                    FunctionDescriptor.class,
+                    Stream.concat(Stream.of(layout(callable.returnValue().type())), parameterLayouts.stream())
+                            .collect(CodeBlock.joining(", ")));
+        }
+    }
+
     private static final class ClassNames {
         static final ClassName BindingSupport = ClassName.get("dev.ianjohnson.guatemala.core", "BindingSupport");
-        static final ClassName MemoryLayout = ClassName.get("java.lang.foreign", "MemoryLayout");
         static final ClassName ObjectType = ClassName.get("dev.ianjohnson.guatemala.gobject", "ObjectType");
         static final ClassName Types = ClassName.get("dev.ianjohnson.guatemala.glib", "Types");
-        static final ClassName ValueLayout = ClassName.get("java.lang.foreign", "ValueLayout");
 
         private ClassNames() {}
     }

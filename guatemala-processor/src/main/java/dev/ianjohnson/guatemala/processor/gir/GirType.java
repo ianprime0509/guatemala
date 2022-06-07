@@ -17,6 +17,10 @@ public record GirType(GirName name, String cType) implements GirAnyType {
     public static final GirType GSIZE = primitive("gzize");
     public static final GirType GPOINTER = primitive("gpointer");
     public static final GirType GCONSTPOINTER = primitive("gconstpointer");
+    /** Fake type to represent a void return value */
+    public static final GirType VOID = new GirType(new GirName(null, "none"), "void");
+    /** Fake type to represent varargs; not really part of glib */
+    public static final GirType VARARGS = primitive("varargs");
 
     public static boolean canLoad(Element element) {
         return NS.CORE.equals(element.getNamespaceURI()) && "type".equals(element.getLocalName());
