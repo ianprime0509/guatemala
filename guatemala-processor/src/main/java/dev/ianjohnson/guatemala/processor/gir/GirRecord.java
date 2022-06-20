@@ -1,5 +1,6 @@
 package dev.ianjohnson.guatemala.processor.gir;
 
+import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
@@ -7,7 +8,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 public record GirRecord(
-        GirName name,
+        String name,
+        @Nullable String getType,
+        @Nullable String associatedClassName,
         List<GirField> fields,
         List<GirCallable> constructors,
         List<GirCallable> functions,
@@ -17,7 +20,15 @@ public record GirRecord(
     }
 
     public static GirRecord load(Element element, String ns) {
-        GirName name = GirName.parse(element.getAttributeNS(null, "name"), ns);
+        String name = element.getAttributeNS(null, "name");
+        String getType = element.getAttributeNS(NS.GLIB, "get-type");
+        if (getType.isEmpty()) {
+            getType = null;
+        }
+        String associatedClassName = element.getAttributeNS(NS.GLIB, "is-gtype-struct-for");
+        if (associatedClassName.isEmpty()) {
+            associatedClassName = null;
+        }
         List<GirField> fields = new ArrayList<>();
         List<GirCallable> constructors = new ArrayList<>();
         List<GirCallable> functions = new ArrayList<>();
@@ -36,6 +47,12 @@ public record GirRecord(
             }
         }
         return new GirRecord(
-                name, List.copyOf(fields), List.copyOf(constructors), List.copyOf(functions), List.copyOf(methods));
+                name,
+                getType,
+                associatedClassName,
+                List.copyOf(fields),
+                List.copyOf(constructors),
+                List.copyOf(functions),
+                List.copyOf(methods));
     }
 }

@@ -1,9 +1,9 @@
 package dev.ianjohnson.guatemala.gio;
 
 import dev.ianjohnson.guatemala.core.BindingSupport;
-import dev.ianjohnson.guatemala.glib.Glib;
+import dev.ianjohnson.guatemala.glib.GLib;
 import dev.ianjohnson.guatemala.gobject.Object;
-import dev.ianjohnson.guatemala.gobject.ObjectType;
+import dev.ianjohnson.guatemala.gobject.ClassType;
 
 import java.lang.foreign.FunctionDescriptor;
 import java.lang.foreign.MemoryAddress;
@@ -20,8 +20,8 @@ public class File extends Object {
     private static final MethodHandle G_FILE_NEW_FOR_URI =
             BindingSupport.lookup("g_file_new_for_uri", FunctionDescriptor.of(ADDRESS, ADDRESS));
 
-    public static final ObjectType<Class, File> TYPE =
-            ObjectType.ofTypeGetter("g_file_get_type", Class::new, File::new);
+    public static final ClassType<Class, File> TYPE =
+            ClassType.ofTypeGetter("g_file_get_type", Class::new, File::new);
 
     protected File(MemoryAddress memoryAddress) {
         super(memoryAddress);
@@ -32,7 +32,7 @@ public class File extends Object {
     }
 
     public static File ofUri(String uri) {
-        return TYPE.wrapInstanceOwning(BindingSupport.callThrowing(
+        return TYPE.wrapOwning(BindingSupport.callThrowing(
                 local -> (MemoryAddress) G_FILE_NEW_FOR_URI.invoke(local.allocateUtf8String(uri))));
     }
 
@@ -49,12 +49,11 @@ public class File extends Object {
     }
 
     public String getUriAsString() {
-        MemoryAddress uriAddr =
-                BindingSupport.callThrowing(() -> (MemoryAddress) G_FILE_GET_URI.invoke(getMemoryAddress()));
+        MemoryAddress uriAddr = BindingSupport.callThrowing(() -> (MemoryAddress) G_FILE_GET_URI.invoke(address()));
         try {
             return uriAddr.getUtf8String(0);
         } finally {
-            Glib.free(uriAddr);
+            GLib.free(uriAddr);
         }
     }
 

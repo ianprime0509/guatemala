@@ -15,6 +15,10 @@
     <dependencies>
         <dependency>
             <groupId>dev.ianjohnson.guatemala</groupId>
+            <artifactId>guatemala-annotations</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>dev.ianjohnson.guatemala</groupId>
             <artifactId>guatemala-core</artifactId>
         </dependency>
 
@@ -23,4 +27,26 @@
             <artifactId>annotations</artifactId>
         </dependency>
     </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <annotationProcessorPaths>
+                        <path>
+                            <groupId>dev.ianjohnson.guatemala</groupId>
+                            <artifactId>guatemala-processor</artifactId>
+                            <version>${project.version}</version>
+                        </path>
+                    </annotationProcessorPaths>
+                    <compilerArgs>
+                        <arg>--enable-preview</arg>
+                        <arg>-Agir.directory=${project.basedir}/src/main/gir</arg>
+                    </compilerArgs>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 </project>

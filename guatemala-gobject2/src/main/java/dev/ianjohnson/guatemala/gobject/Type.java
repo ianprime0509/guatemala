@@ -11,8 +11,8 @@ import static dev.ianjohnson.guatemala.glib.Types.GSIZE;
 import static java.lang.foreign.ValueLayout.ADDRESS;
 import static java.lang.foreign.ValueLayout.JAVA_LONG;
 
-public sealed class Type permits ObjectType {
-    public static final ValueLayout LAYOUT = GSIZE;
+public class Type {
+    public static final ValueLayout MEMORY_LAYOUT = GSIZE;
 
     public static final Type INVALID = ofFundamental(0);
     public static final Type NONE = ofFundamental(1);
@@ -78,7 +78,7 @@ public sealed class Type permits ObjectType {
     }
 
     @Override
-    public String toString() {
+    public java.lang.String toString() {
         return "Type(" + Long.toUnsignedString(raw) + ")";
     }
 }

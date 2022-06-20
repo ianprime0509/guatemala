@@ -46,21 +46,21 @@ public final class Error {
     }
 
     public Quark getDomain() {
-        return Quark.ofRaw(memorySegment.get(JAVA_INT, LAYOUT.byteOffset(groupElement("domain"))));
+        return new Quark(memorySegment.get(JAVA_INT, LAYOUT.byteOffset(groupElement("domain"))));
     }
 
     public int getCode() {
         return memorySegment.get(JAVA_INT, LAYOUT.byteOffset(groupElement("code")));
     }
 
-    public String getMessage() {
+    public java.lang.String getMessage() {
         return memorySegment
                 .get(ADDRESS, LAYOUT.byteOffset(groupElement("message")))
                 .getUtf8String(0);
     }
 
     @Override
-    public String toString() {
+    public java.lang.String toString() {
         return "Error(domain=" + getDomain() + ",code=" + getCode() + ",message=" + getMessage() + ")";
     }
 

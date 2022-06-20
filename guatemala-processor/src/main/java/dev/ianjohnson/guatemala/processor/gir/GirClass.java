@@ -1,5 +1,6 @@
 package dev.ianjohnson.guatemala.processor.gir;
 
+import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
@@ -7,8 +8,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 public record GirClass(
-        GirName name,
+        String name,
         String getType,
+        @Nullable GirName parent,
+        boolean isAbstract,
+        boolean isFinal,
+        String refFunc,
+        String unrefFunc,
         List<GirField> fields,
         List<GirCallable> constructors,
         List<GirCallable> functions,
@@ -18,8 +24,14 @@ public record GirClass(
     }
 
     public static GirClass load(Element element, String ns) {
-        GirName name = GirName.parse(element.getAttributeNS(null, "name"), ns);
+        String name = element.getAttributeNS(null, "name");
         String getType = element.getAttributeNS(NS.GLIB, "get-type");
+        String parentValue = element.getAttributeNS(null, "parent");
+        GirName parent = !parentValue.isEmpty() ? GirName.parse(parentValue, ns) : null;
+        boolean isAbstract = "1".equals(element.getAttributeNS(null, "abstract"));
+        boolean isFinal = "1".equals(element.getAttributeNS(null, "final"));
+        String refFunc = element.getAttributeNS(NS.GLIB, "ref-func");
+        String unrefFunc = element.getAttributeNS(NS.GLIB, "unref-func");
         List<GirField> fields = new ArrayList<>();
         List<GirCallable> constructors = new ArrayList<>();
         List<GirCallable> functions = new ArrayList<>();
@@ -40,6 +52,11 @@ public record GirClass(
         return new GirClass(
                 name,
                 getType,
+                parent,
+                isAbstract,
+                isFinal,
+                refFunc,
+                unrefFunc,
                 List.copyOf(fields),
                 List.copyOf(constructors),
                 List.copyOf(functions),

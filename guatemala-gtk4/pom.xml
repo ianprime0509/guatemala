@@ -19,11 +19,11 @@
         </dependency>
         <dependency>
             <groupId>dev.ianjohnson.guatemala</groupId>
-            <artifactId>guatemala-gio2</artifactId>
+            <artifactId>guatemala-gdk4</artifactId>
         </dependency>
         <dependency>
             <groupId>dev.ianjohnson.guatemala</groupId>
-            <artifactId>guatemala-gobject2</artifactId>
+            <artifactId>guatemala-gsk4</artifactId>
         </dependency>
 
         <dependency>
@@ -46,6 +46,7 @@
                         </path>
                     </annotationProcessorPaths>
                     <compilerArgs>
+                        <arg>--enable-preview</arg>
                         <arg>-Agir.directory=${project.basedir}/src/main/gir</arg>
                     </compilerArgs>
                 </configuration>

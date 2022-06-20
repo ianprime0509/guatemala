@@ -1,6 +1,6 @@
 package dev.ianjohnson.guatemala.examples.gtk.builder;
 
-import dev.ianjohnson.guatemala.gio.ApplicationFlag;
+import dev.ianjohnson.guatemala.gio.ApplicationFlags;
 import dev.ianjohnson.guatemala.gtk.Application;
 import dev.ianjohnson.guatemala.gtk.Builder;
 import dev.ianjohnson.guatemala.gtk.Button;
@@ -12,7 +12,7 @@ import java.util.EnumSet;
 // https://docs.gtk.org/gtk4/getting_started.html#packing-buttons-with-gtkbuilder
 class Main {
     public static void main(String[] args) {
-        Application app = Application.of("org.gtk.example", EnumSet.noneOf(ApplicationFlag.class));
+        Application app = Application.of("org.gtk.example", EnumSet.noneOf(ApplicationFlags.class));
         app.connectActivate(() -> activate(app));
         System.exit(app.run(args));
     }

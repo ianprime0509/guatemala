@@ -43,7 +43,7 @@ public final class TypeQuery {
         return Type.ofRaw(memorySegment.get(JAVA_LONG, LAYOUT.byteOffset(groupElement("type"))));
     }
 
-    public String getTypeName() {
+    public java.lang.String getTypeName() {
         return memorySegment
                 .get(ADDRESS, LAYOUT.byteOffset(groupElement("type_name")))
                 .getUtf8String(0);

@@ -1,7 +1,7 @@
 package dev.ianjohnson.guatemala.gtk;
 
 import dev.ianjohnson.guatemala.core.BindingSupport;
-import dev.ianjohnson.guatemala.gobject.ObjectType;
+import dev.ianjohnson.guatemala.gobject.ClassType;
 
 import java.lang.foreign.FunctionDescriptor;
 import java.lang.foreign.MemoryAddress;
@@ -15,8 +15,8 @@ import static java.lang.foreign.ValueLayout.ADDRESS;
 public class TextView extends Widget {
     public static final MemoryLayout LAYOUT =
             BindingSupport.structLayout(Widget.LAYOUT.withName("parent_instance"), ADDRESS.withName("priv"));
-    public static final ObjectType<Class, TextView> TYPE =
-            ObjectType.ofTypeGetter("gtk_text_view_get_type", Class::new, TextView::new);
+    public static final ClassType<Class, TextView> TYPE =
+            ClassType.ofTypeGetter("gtk_text_view_get_type", Class::new, TextView::new);
 
     private static final MethodHandle GTK_TEXT_VIEW_SET_CURSOR_VISIBLE =
             BindingSupport.lookup("gtk_text_view_set_cursor_visible", FunctionDescriptor.ofVoid(ADDRESS, GBOOLEAN));
@@ -28,11 +28,11 @@ public class TextView extends Widget {
     }
 
     public void setCursorVisible(boolean cursorVisible) {
-        BindingSupport.runThrowing(() -> GTK_TEXT_VIEW_SET_CURSOR_VISIBLE.invoke(getMemoryAddress(), cursorVisible));
+        BindingSupport.runThrowing(() -> GTK_TEXT_VIEW_SET_CURSOR_VISIBLE.invoke(address(), cursorVisible));
     }
 
     public void setEditable(boolean editable) {
-        BindingSupport.runThrowing(() -> GTK_TEXT_VIEW_SET_EDITABLE.invoke(getMemoryAddress(), editable));
+        BindingSupport.runThrowing(() -> GTK_TEXT_VIEW_SET_EDITABLE.invoke(address(), editable));
     }
 
     public static class Class extends Widget.Class {

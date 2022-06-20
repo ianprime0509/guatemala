@@ -1,10 +1,10 @@
 package dev.ianjohnson.guatemala.examples.gtk.subclass;
 
 import dev.ianjohnson.guatemala.core.BindingSupport;
-import dev.ianjohnson.guatemala.gio.ApplicationFlag;
+import dev.ianjohnson.guatemala.gio.ApplicationFlags;
 import dev.ianjohnson.guatemala.gio.File;
-import dev.ianjohnson.guatemala.gobject.ObjectType;
-import dev.ianjohnson.guatemala.gobject.TypeFlag;
+import dev.ianjohnson.guatemala.gobject.ClassType;
+import dev.ianjohnson.guatemala.gobject.TypeFlags;
 import dev.ianjohnson.guatemala.gobject.Value;
 import dev.ianjohnson.guatemala.gtk.Application;
 
@@ -15,8 +15,9 @@ import java.util.List;
 import java.util.Map;
 
 class ExampleApp extends Application {
-    public static final MemoryLayout LAYOUT = BindingSupport.structLayout(Application.LAYOUT.withName("parent_instance"));
-    public static final ObjectType<Class, ExampleApp> TYPE = ObjectType.register(
+    public static final MemoryLayout LAYOUT =
+            BindingSupport.structLayout(Application.LAYOUT.withName("parent_instance"));
+    public static final ClassType<Class, ExampleApp> TYPE = ClassType.register(
             Application.TYPE,
             "ExampleApp",
             Class.LAYOUT,
@@ -25,7 +26,7 @@ class ExampleApp extends Application {
             LAYOUT,
             ExampleApp::new,
             ExampleApp::init,
-            EnumSet.noneOf(TypeFlag.class));
+            EnumSet.noneOf(TypeFlags.class));
 
     protected ExampleApp(MemoryAddress memoryAddress) {
         super(memoryAddress);
@@ -36,7 +37,7 @@ class ExampleApp extends Application {
                 TYPE,
                 Map.of(
                         "application-id", Value.of("org.gtk.exampleapp"),
-                        "flags", Value.of(EnumSet.of(ApplicationFlag.HANDLES_OPEN))));
+                        "flags", Value.of(EnumSet.of(ApplicationFlags.HANDLES_OPEN))));
     }
 
     private void init() {}

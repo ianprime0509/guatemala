@@ -1,8 +1,8 @@
 package dev.ianjohnson.guatemala.examples.gtk.subclass;
 
 import dev.ianjohnson.guatemala.core.BindingSupport;
-import dev.ianjohnson.guatemala.gobject.ObjectType;
-import dev.ianjohnson.guatemala.gobject.TypeFlag;
+import dev.ianjohnson.guatemala.gobject.ClassType;
+import dev.ianjohnson.guatemala.gobject.TypeFlags;
 import dev.ianjohnson.guatemala.gobject.Value;
 import dev.ianjohnson.guatemala.gtk.ApplicationWindow;
 
@@ -18,7 +18,7 @@ import static java.lang.foreign.ValueLayout.ADDRESS;
 class ExampleAppWindow extends ApplicationWindow {
     public static final MemoryLayout LAYOUT =
             BindingSupport.structLayout(ApplicationWindow.LAYOUT.withName("parent_instance"), ADDRESS.withName("stack"));
-    public static final ObjectType<Class, ExampleAppWindow> TYPE = ObjectType.register(
+    public static final ClassType<Class, ExampleAppWindow> TYPE = ClassType.register(
             ApplicationWindow.TYPE,
             "ExampleAppWindow",
             Class.LAYOUT,
@@ -27,7 +27,7 @@ class ExampleAppWindow extends ApplicationWindow {
             LAYOUT,
             ExampleAppWindow::new,
             ExampleAppWindow::init,
-            EnumSet.noneOf(TypeFlag.class));
+            EnumSet.noneOf(TypeFlags.class));
 
     protected ExampleAppWindow(MemoryAddress memoryAddress) {
         super(memoryAddress);

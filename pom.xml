@@ -14,10 +14,15 @@
         <module>guatemala-core</module>
         <module>guatemala-processor</module>
 
+        <module>guatemala-cairo</module>
+        <module>guatemala-gdk4</module>
         <module>guatemala-gio2</module>
         <module>guatemala-glib2</module>
         <module>guatemala-gobject2</module>
+        <module>guatemala-graphene</module>
+        <module>guatemala-gsk4</module>
         <module>guatemala-gtk4</module>
+        <module>guatemala-pango</module>
 
         <module>guatemala-examples</module>
     </modules>
@@ -25,7 +30,6 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.release>19</maven.compiler.release>
-        <maven.compiler.enablePreview>true</maven.compiler.enablePreview>
     </properties>
 
     <dependencyManagement>
@@ -38,6 +42,16 @@
             <dependency>
                 <groupId>dev.ianjohnson.guatemala</groupId>
                 <artifactId>guatemala-core</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>dev.ianjohnson.guatemala</groupId>
+                <artifactId>guatemala-cairo</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>dev.ianjohnson.guatemala</groupId>
+                <artifactId>guatemala-gdk4</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
@@ -57,7 +71,22 @@
             </dependency>
             <dependency>
                 <groupId>dev.ianjohnson.guatemala</groupId>
+                <artifactId>guatemala-graphene</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>dev.ianjohnson.guatemala</groupId>
+                <artifactId>guatemala-gsk4</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>dev.ianjohnson.guatemala</groupId>
                 <artifactId>guatemala-gtk4</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>dev.ianjohnson.guatemala</groupId>
+                <artifactId>guatemala-pango</artifactId>
                 <version>${project.version}</version>
             </dependency>
 

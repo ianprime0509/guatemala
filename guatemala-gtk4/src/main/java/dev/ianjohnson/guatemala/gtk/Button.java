@@ -1,7 +1,7 @@
 package dev.ianjohnson.guatemala.gtk;
 
 import dev.ianjohnson.guatemala.core.BindingSupport;
-import dev.ianjohnson.guatemala.gobject.ObjectType;
+import dev.ianjohnson.guatemala.gobject.ClassType;
 
 import java.lang.foreign.FunctionDescriptor;
 import java.lang.foreign.MemoryAddress;
@@ -15,15 +15,15 @@ public class Button extends Widget {
     private static final MethodHandle GTK_BUTTON_NEW_WITH_LABEL =
             BindingSupport.lookup("gtk_button_new_with_label", FunctionDescriptor.of(ADDRESS, ADDRESS));
 
-    public static final ObjectType<Class, Button> TYPE =
-            ObjectType.ofTypeGetter("gtk_button_get_type", Class::new, Button::new);
+    public static final ClassType<Class, Button> TYPE =
+            ClassType.ofTypeGetter("gtk_button_get_type", Class::new, Button::new);
 
     protected Button(MemoryAddress memoryAddress) {
         super(memoryAddress);
     }
 
     public static Button ofLabel(String label) {
-        return TYPE.wrapInstanceOwning(BindingSupport.callThrowing(
+        return TYPE.wrapOwning(BindingSupport.callThrowing(
                 local -> (MemoryAddress) GTK_BUTTON_NEW_WITH_LABEL.invoke(local.allocateUtf8String(label))));
     }
 

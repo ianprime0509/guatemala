@@ -8,8 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
 
-public record GirCallable(
-        String name, String cIdentifier, ReturnValue returnValue, List<Parameter> parameters) {
+public record GirCallable(String name, String cIdentifier, ReturnValue returnValue, List<Parameter> parameters) {
     public static boolean canLoad(Element element) {
         return NS.CORE.equals(element.getNamespaceURI()) && "callable".equals(element.getLocalName());
     }
@@ -40,6 +39,11 @@ public record GirCallable(
                 .findFirst()
                 .orElse(null);
         return new GirCallable(name, cIdentifier, returnValue, parameters);
+    }
+
+    public boolean isVariadic() {
+        return !parameters.isEmpty()
+                && GirType.VARARGS.equals(parameters.get(parameters.size() - 1).type());
     }
 
     public record ReturnValue(GirAnyType type) {

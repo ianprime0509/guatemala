@@ -6,12 +6,15 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.lang.foreign.FunctionDescriptor;
 import java.lang.foreign.MemoryAddress;
+import java.lang.foreign.MemoryLayout;
 import java.lang.foreign.MemorySegment;
 import java.lang.invoke.MethodHandle;
 
 import static java.lang.foreign.ValueLayout.*;
 
 public final class Bytes {
+    public static final MemoryLayout MEMORY_LAYOUT = BytesImpl.MEMORY_LAYOUT;
+
     private static final MethodHandle G_BYTES_GET_DATA =
             BindingSupport.lookup("g_bytes_get_data", FunctionDescriptor.of(ADDRESS, ADDRESS, ADDRESS));
     private static final MethodHandle G_BYTES_NEW =
@@ -35,7 +38,7 @@ public final class Bytes {
         }));
     }
 
-    public static Bytes ofClasspathResource(Class<?> clazz, String resource) throws IOException {
+    public static Bytes ofClasspathResource(Class<?> clazz, java.lang.String resource) throws IOException {
         InputStream is = clazz.getResourceAsStream(resource);
         if (is == null) {
             throw new IllegalArgumentException("Classpath resource not found: " + resource);

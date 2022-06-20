@@ -2,8 +2,8 @@ package dev.ianjohnson.guatemala.gtk;
 
 import dev.ianjohnson.guatemala.core.BindingSupport;
 import dev.ianjohnson.guatemala.glib.Bytes;
+import dev.ianjohnson.guatemala.gobject.ClassType;
 import dev.ianjohnson.guatemala.gobject.InitiallyUnowned;
-import dev.ianjohnson.guatemala.gobject.ObjectType;
 
 import java.io.IOException;
 import java.lang.foreign.FunctionDescriptor;
@@ -18,8 +18,8 @@ import static java.lang.foreign.ValueLayout.*;
 public class Widget extends InitiallyUnowned {
     public static final MemoryLayout LAYOUT =
             BindingSupport.structLayout(InitiallyUnowned.LAYOUT.withName("parent_instance"), ADDRESS.withName("priv"));
-    public static final ObjectType<Class, Widget> TYPE =
-            ObjectType.ofTypeGetter("gtk_widget_get_type", Class::new, Widget::new);
+    public static final ClassType<Class, Widget> TYPE =
+            ClassType.ofTypeGetter("gtk_widget_get_type", Class::new, Widget::new);
 
     private static final MethodHandle GTK_WIDGET_INIT_TEMPLATE =
             BindingSupport.lookup("gtk_widget_init_template", FunctionDescriptor.ofVoid(ADDRESS));
@@ -39,27 +39,27 @@ public class Widget extends InitiallyUnowned {
     }
 
     public void initTemplate() {
-        BindingSupport.runThrowing(() -> GTK_WIDGET_INIT_TEMPLATE.invoke(getMemoryAddress()));
+        BindingSupport.runThrowing(() -> GTK_WIDGET_INIT_TEMPLATE.invoke(address()));
     }
 
     public void setHalign(Align align) {
-        BindingSupport.runThrowing(() -> GTK_WIDGET_SET_HALIGN.invoke(getMemoryAddress(), align.getValue()));
+        BindingSupport.runThrowing(() -> GTK_WIDGET_SET_HALIGN.invoke(address(), align.value()));
     }
 
     public void setHexpand(boolean expand) {
-        BindingSupport.runThrowing(() -> GTK_WIDGET_SET_HEXPAND.invoke(getMemoryAddress(), expand));
+        BindingSupport.runThrowing(() -> GTK_WIDGET_SET_HEXPAND.invoke(address(), expand));
     }
 
     public void setValign(Align align) {
-        BindingSupport.runThrowing(() -> GTK_WIDGET_SET_VALIGN.invoke(getMemoryAddress(), align.getValue()));
+        BindingSupport.runThrowing(() -> GTK_WIDGET_SET_VALIGN.invoke(address(), align.value()));
     }
 
     public void setVexpand(boolean expand) {
-        BindingSupport.runThrowing(() -> GTK_WIDGET_SET_VEXPAND.invoke(getMemoryAddress(), expand));
+        BindingSupport.runThrowing(() -> GTK_WIDGET_SET_VEXPAND.invoke(address(), expand));
     }
 
     public void show() {
-        BindingSupport.runThrowing(() -> GTK_WIDGET_SHOW.invoke(getMemoryAddress()));
+        BindingSupport.runThrowing(() -> GTK_WIDGET_SHOW.invoke(address()));
     }
 
     public static class Class extends InitiallyUnowned.Class {
@@ -105,12 +105,12 @@ public class Widget extends InitiallyUnowned {
 
         public void bindTemplateChild(String name, boolean internalChild, long structOffset) {
             BindingSupport.runThrowing(local -> GTK_WIDGET_CLASS_BIND_TEMPLATE_CHILD_FULL.invoke(
-                    getMemoryAddress(), local.allocateUtf8String(name), internalChild, structOffset));
+                    address(), local.allocateUtf8String(name), internalChild, structOffset));
         }
 
         public void setTemplate(Bytes template) {
             BindingSupport.runThrowing(
-                    () -> GTK_WIDGET_CLASS_SET_TEMPLATE.invoke(getMemoryAddress(), template.getMemoryAddress()));
+                    () -> GTK_WIDGET_CLASS_SET_TEMPLATE.invoke(address(), template.getMemoryAddress()));
         }
 
         public void setTemplateFromClasspathResource(java.lang.Class<?> clazz, String resource) throws IOException {

@@ -1,7 +1,7 @@
 package dev.ianjohnson.guatemala.gobject;
 
 import dev.ianjohnson.guatemala.core.BindingSupport;
-import dev.ianjohnson.guatemala.core.Flag;
+import dev.ianjohnson.guatemala.core.BitField;
 
 import java.lang.foreign.*;
 import java.lang.invoke.MethodHandle;
@@ -14,8 +14,8 @@ import static java.lang.foreign.ValueLayout.ADDRESS;
 import static java.lang.foreign.ValueLayout.JAVA_LONG;
 
 public final class Value {
-    public static final MemoryLayout LAYOUT = BindingSupport.structLayout(
-            Type.LAYOUT.withName("g_type"),
+    public static final MemoryLayout MEMORY_LAYOUT = BindingSupport.structLayout(
+            Type.MEMORY_LAYOUT.withName("g_type"),
             // We don't use the data field, but it needs to be present to get the correct layout
             MemoryLayout.paddingLayout(128).withName("data"));
 
@@ -43,7 +43,7 @@ public final class Value {
     }
 
     public static Value ofUninitialized(MemorySession memorySession) {
-        return wrapOwning(memorySession.allocate(LAYOUT));
+        return wrapOwning(memorySession.allocate(MEMORY_LAYOUT));
     }
 
     public static Value of(int value) {
@@ -52,8 +52,8 @@ public final class Value {
         return v;
     }
 
-    public static Value of(Set<? extends Flag> flags) {
-        return of(Flag.toInt(flags));
+    public static Value of(Set<? extends BitField> flags) {
+        return of(BitField.toInt(flags));
     }
 
     public static Value of(Object value) {
@@ -73,7 +73,7 @@ public final class Value {
     }
 
     public static Value wrap(MemoryAddress memoryAddress, MemorySession memorySession) {
-        return wrap(MemorySegment.ofAddress(memoryAddress, LAYOUT.byteSize(), memorySession));
+        return wrap(MemorySegment.ofAddress(memoryAddress, MEMORY_LAYOUT.byteSize(), memorySession));
     }
 
     public static Value wrapOwning(MemorySegment memorySegment) {
@@ -92,7 +92,7 @@ public final class Value {
     }
 
     public Type getType() {
-        return Type.ofRaw(getMemorySegment().get(JAVA_LONG, LAYOUT.byteOffset(groupElement("g_type"))));
+        return Type.ofRaw(getMemorySegment().get(JAVA_LONG, MEMORY_LAYOUT.byteOffset(groupElement("g_type"))));
     }
 
     public void init(Type type) {
@@ -106,7 +106,7 @@ public final class Value {
 
     public void set(Object value) {
         init(Object.TYPE);
-        BindingSupport.runThrowing(() -> G_VALUE_SET_OBJECT.invoke(getMemorySegment(), value.getMemoryAddress()));
+        BindingSupport.runThrowing(() -> G_VALUE_SET_OBJECT.invoke(getMemorySegment(), value.address()));
     }
 
     public void set(String value) {

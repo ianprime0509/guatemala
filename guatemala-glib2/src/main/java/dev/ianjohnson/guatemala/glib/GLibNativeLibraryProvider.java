@@ -6,7 +6,7 @@ import java.util.List;
 
 public final class GLibNativeLibraryProvider implements NativeLibraryProvider {
     @Override
-    public List<String> getLibraryNames() {
+    public List<java.lang.String> getLibraryNames() {
         return List.of("glib-2.0");
     }
 }

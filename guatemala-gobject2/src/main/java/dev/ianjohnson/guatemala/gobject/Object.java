@@ -1,92 +1,82 @@
 package dev.ianjohnson.guatemala.gobject;
 
 import dev.ianjohnson.guatemala.core.BindingSupport;
+import dev.ianjohnson.guatemala.glib.Addressable;
+import dev.ianjohnson.guatemala.glib.ReferenceCounted;
 
 import java.lang.foreign.*;
 import java.lang.invoke.MethodHandle;
 import java.util.Map;
 import java.util.Objects;
 
-import static dev.ianjohnson.guatemala.glib.Types.GPOINTER;
-import static dev.ianjohnson.guatemala.glib.Types.GSIZE;
-import static java.lang.foreign.ValueLayout.*;
+import static java.lang.foreign.ValueLayout.ADDRESS;
 
-public class Object {
-    public static final MemoryLayout LAYOUT = BindingSupport.structLayout(
-            TypeInstance.LAYOUT.withName("g_type_instance"), JAVA_INT.withName("ref_count"), ADDRESS.withName("qdata"));
+public class Object implements Addressable, ReferenceCounted {
+    public static final MemoryLayout MEMORY_LAYOUT = ObjectImpl.MEMORY_LAYOUT;
 
-    private static final MethodHandle G_OBJECT_NEW_WITH_PROPERTIES = BindingSupport.lookup(
-            "g_object_new_with_properties", FunctionDescriptor.of(ADDRESS, JAVA_LONG, JAVA_INT, ADDRESS, ADDRESS));
-    private static final MethodHandle G_SIGNAL_CONNECT_DATA = BindingSupport.lookup(
-            "g_signal_connect_data",
-            FunctionDescriptor.of(JAVA_LONG, ADDRESS, ADDRESS, ADDRESS, ADDRESS, ADDRESS, JAVA_INT));
+    public static final ClassType<Class, Object> TYPE = ClassType.ofRaw(20 << 2, Class::new, Object::new);
 
-    public static final ObjectType<Class, Object> TYPE = ObjectType.ofRaw(20 << 2, Class::new, Object::new);
+    private final MemoryAddress address;
 
-    private final MemoryAddress memoryAddress;
-
-    protected Object(MemoryAddress memoryAddress) {
-        this.memoryAddress = Objects.requireNonNull(memoryAddress, "memoryAddress");
+    protected Object(MemoryAddress address) {
+        this.address = Objects.requireNonNull(address, "address");
     }
 
-    public static <T extends Object> T newWithProperties(ObjectType<?, T> type, Map<String, Value> properties) {
+    public static <T extends Object> T newWithProperties(ClassType<?, T> type, Map<String, Value> properties) {
         MemoryAddress memoryAddress = BindingSupport.callThrowing(local -> {
             MemorySegment names = local.allocateArray(ADDRESS, properties.size());
-            MemorySegment values = local.allocateArray(Value.LAYOUT, properties.size());
+            MemorySegment values = local.allocateArray(Value.MEMORY_LAYOUT, properties.size());
             int i = 0;
             for (var entry : properties.entrySet()) {
                 names.setAtIndex(ADDRESS, i, local.allocateUtf8String(entry.getKey()));
-                Value.wrap(values.asSlice(i * Value.LAYOUT.byteSize(), Value.LAYOUT.byteSize()))
+                Value.wrap(values.asSlice(i * Value.MEMORY_LAYOUT.byteSize(), Value.MEMORY_LAYOUT.byteSize()))
                         .copyFrom(entry.getValue());
                 i++;
             }
-            return (MemoryAddress) G_OBJECT_NEW_WITH_PROPERTIES.invoke(type.getRaw(), properties.size(), names, values);
+            return ObjectImpl.ofProperties(type.getRaw(), properties.size(), names, values);
         });
-        return type.wrapInstanceOwning(memoryAddress);
+        return type.wrapOwning(memoryAddress);
     }
 
-    public final MemoryAddress getMemoryAddress() {
-        return memoryAddress;
+    @Override
+    public final MemoryAddress address() {
+        return address;
     }
 
-    public final <T extends Object> T cast(ObjectType<?, T> type) {
-        return type.wrapInstance(getMemoryAddress());
+    @Override
+    public void ref() {
+        ObjectImpl.ref(address());
+    }
+
+    @Override
+    public void unref() {
+        ObjectImpl.unref(address());
+    }
+
+    public final <T extends Object> T cast(ClassType<?, T> type) {
+        return type.wrap(address());
     }
 
     public void connectSignal(String signal, MethodHandle handler, FunctionDescriptor functionDescriptor) {
         MemorySegment function = BindingSupport.upcallStub(handler, functionDescriptor, MemorySession.global());
-        BindingSupport.runThrowing(local -> G_SIGNAL_CONNECT_DATA.invoke(
-                getMemoryAddress(),
-                local.allocateUtf8String(signal),
-                function,
-                MemoryAddress.NULL,
-                MemoryAddress.NULL,
-                0));
+        try (MemorySession local = MemorySession.openConfined()) {
+            GObjectImpl.signalConnectData(
+                    address(), local.allocateUtf8String(signal), function, MemoryAddress.NULL, MemoryAddress.NULL, 0);
+        }
     }
 
-    public static class Class {
-        public static final MemoryLayout LAYOUT = BindingSupport.structLayout(
-                TypeClass.LAYOUT.withName("g_type_class"),
-                ADDRESS.withName("construct_properties"),
-                ADDRESS.withName("constructor"),
-                ADDRESS.withName("set_property"),
-                ADDRESS.withName("get_property"),
-                ADDRESS.withName("dispose"),
-                ADDRESS.withName("finalize"),
-                ADDRESS.withName("dispatch_properties_changed"),
-                ADDRESS.withName("notify"),
-                ADDRESS.withName("constructed"),
-                GSIZE.withName("flags"),
-                MemoryLayout.sequenceLayout(6, GPOINTER).withName("pdummy"));
+    public static class Class implements Addressable {
+        public static final MemoryLayout MEMORY_LAYOUT = ObjectImpl.Class.MEMORY_LAYOUT;
 
-        private final MemoryAddress memoryAddress;
+        private final MemoryAddress address;
 
-        protected Class(MemoryAddress memoryAddress) {
-            this.memoryAddress = Objects.requireNonNull(memoryAddress, "memoryAddress");
+        protected Class(MemoryAddress address) {
+            this.address = Objects.requireNonNull(address, "address");
         }
 
-        public MemoryAddress getMemoryAddress() {
-            return memoryAddress;
+        @Override
+        public MemoryAddress address() {
+            return address;
         }
     }
 }

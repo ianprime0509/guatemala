@@ -1,7 +1,7 @@
 package dev.ianjohnson.guatemala.gtk;
 
 import dev.ianjohnson.guatemala.core.BindingSupport;
-import dev.ianjohnson.guatemala.gobject.ObjectType;
+import dev.ianjohnson.guatemala.gobject.ClassType;
 
 import java.lang.foreign.FunctionDescriptor;
 import java.lang.foreign.MemoryAddress;
@@ -30,41 +30,41 @@ public class Window extends Widget {
     private static final MethodHandle GTK_WINDOW_SET_TITLE =
             BindingSupport.lookup("gtk_window_set_title", FunctionDescriptor.ofVoid(ADDRESS, ADDRESS));
 
-    public static final ObjectType<Class, Window> TYPE =
-            ObjectType.ofTypeGetter("gtk_window_get_type", Class::new, Window::new);
+    public static final ClassType<Class, Window> TYPE =
+            ClassType.ofTypeGetter("gtk_window_get_type", Class::new, Window::new);
 
     protected Window(MemoryAddress memoryAddress) {
         super(memoryAddress);
     }
 
     public void close() {
-        BindingSupport.runThrowing(() -> GTK_WINDOW_CLOSE.invoke(getMemoryAddress()));
+        BindingSupport.runThrowing(() -> GTK_WINDOW_CLOSE.invoke(address()));
     }
 
     public void destroy() {
-        BindingSupport.runThrowing(() -> GTK_WINDOW_DESTROY.invoke(getMemoryAddress()));
+        BindingSupport.runThrowing(() -> GTK_WINDOW_DESTROY.invoke(address()));
     }
 
     public void present() {
-        BindingSupport.runThrowing(() -> GTK_WINDOW_PRESENT.invoke(getMemoryAddress()));
+        BindingSupport.runThrowing(() -> GTK_WINDOW_PRESENT.invoke(address()));
     }
 
     public void setApplication(Application application) {
         BindingSupport.runThrowing(
-                () -> GTK_WINDOW_SET_APPLICATION.invoke(getMemoryAddress(), application.getMemoryAddress()));
+                () -> GTK_WINDOW_SET_APPLICATION.invoke(address(), application.address()));
     }
 
     public void setChild(Widget child) {
-        BindingSupport.runThrowing(() -> GTK_WINDOW_SET_CHILD.invoke(getMemoryAddress(), child.getMemoryAddress()));
+        BindingSupport.runThrowing(() -> GTK_WINDOW_SET_CHILD.invoke(address(), child.address()));
     }
 
     public void setDefaultSize(int width, int height) {
-        BindingSupport.runThrowing(() -> GTK_WINDOW_SET_DEFAULT_SIZE.invoke(getMemoryAddress(), width, height));
+        BindingSupport.runThrowing(() -> GTK_WINDOW_SET_DEFAULT_SIZE.invoke(address(), width, height));
     }
 
     public void setTitle(String title) {
         BindingSupport.runThrowing(
-                local -> GTK_WINDOW_SET_TITLE.invoke(getMemoryAddress(), local.allocateUtf8String(title)));
+                local -> GTK_WINDOW_SET_TITLE.invoke(address(), local.allocateUtf8String(title)));
     }
 
     public static class Class extends Widget.Class {
