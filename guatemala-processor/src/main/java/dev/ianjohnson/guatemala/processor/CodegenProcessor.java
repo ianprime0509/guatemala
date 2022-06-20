@@ -434,24 +434,24 @@ public final class CodegenProcessor extends AbstractProcessor {
                 .addSuperinterface(ClassNames.BitField)
                 .addField(FieldSpec.builder(
                                 ValueLayout.class, "MEMORY_LAYOUT", Modifier.PUBLIC, Modifier.STATIC, Modifier.FINAL)
-                        .initializer("$T.GULONG", ClassNames.Types)
+                        .initializer("$T.GINT", ClassNames.Types)
                         .build())
-                .addField(FieldSpec.builder(long.class, "value", Modifier.PRIVATE, Modifier.FINAL)
+                .addField(FieldSpec.builder(int.class, "value", Modifier.PRIVATE, Modifier.FINAL)
                         .build())
                 .addMethod(MethodSpec.constructorBuilder()
-                        .addParameter(long.class, "value")
+                        .addParameter(int.class, "value")
                         .addCode("this.value = value;\n")
                         .build())
                 .addMethod(MethodSpec.methodBuilder("value")
                         .addAnnotation(Override.class)
                         .addModifiers(Modifier.PUBLIC)
-                        .returns(long.class)
+                        .returns(int.class)
                         .addCode("return value;\n")
                         .build());
         for (GirMember member : type.members()) {
             builder.addEnumConstant(
                     Support.toJavaSnakeCase(member.name()),
-                    TypeSpec.anonymousClassBuilder("$LL", member.value()).build());
+                    TypeSpec.anonymousClassBuilder("$L", member.value()).build());
         }
         return builder.build();
     }
@@ -792,8 +792,12 @@ public final class CodegenProcessor extends AbstractProcessor {
     }
 
     private Type javaBindingType(GirAnyType type, boolean isParam) {
-        if (type instanceof GirArrayType) {
-            return MemorySegment.class;
+        if (type instanceof GirArrayType arrayType) {
+            if (arrayType.fixedSize() != null) {
+                return MemorySegment.class;
+            } else {
+                return isParam ? Addressable.class : MemoryAddress.class;
+            }
         } else {
             GirType simpleType = (GirType) type;
             if (GirType.GCHAR.equals(simpleType)

@@ -1,4 +1,4 @@
-package dev.ianjohnson.guatemala.examples.gtk.subclass;
+package dev.ianjohnson.guatemala.examples.gtk.complete;
 
 import dev.ianjohnson.guatemala.core.BindingSupport;
 import dev.ianjohnson.guatemala.gio.ApplicationFlags;

@@ -1,5 +1,6 @@
 package dev.ianjohnson.guatemala.examples.gtk.grid;
 
+import dev.ianjohnson.guatemala.examples.gtk.Example;
 import dev.ianjohnson.guatemala.gio.ApplicationFlags;
 import dev.ianjohnson.guatemala.gtk.Application;
 import dev.ianjohnson.guatemala.gtk.ApplicationWindow;
@@ -8,8 +9,11 @@ import dev.ianjohnson.guatemala.gtk.Grid;
 
 import java.util.EnumSet;
 
-// https://docs.gtk.org/gtk4/getting_started.html#packing-buttons
-class Main {
+@Example(
+        name = "Grid",
+        description = "A simple application using a Grid",
+        source = "https://docs.gtk.org/gtk4/getting_started.html#packing-buttons")
+public final class Main {
     public static void main(String[] args) {
         Application app = Application.of("org.gtk.example", EnumSet.noneOf(ApplicationFlags.class));
         app.connectActivate(() -> activate(app));

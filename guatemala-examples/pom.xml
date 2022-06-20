@@ -22,6 +22,10 @@
             <groupId>org.jetbrains</groupId>
             <artifactId>annotations</artifactId>
         </dependency>
+        <dependency>
+            <groupId>io.github.classgraph</groupId>
+            <artifactId>classgraph</artifactId>
+        </dependency>
     </dependencies>
 
     <build>
@@ -34,6 +38,24 @@
                         <arg>--enable-preview</arg>
                     </compilerArgs>
                 </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jlink-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>jlink</goal>
+                        </goals>
+                        <configuration>
+                            <classifier>jlink</classifier>
+                            <launcher>examples=dev.ianjohnson.guatemala.examples/dev.ianjohnson.guatemala.examples.gtk.Main</launcher>
+                            <addOptions>
+                                <addOption>--enable-preview</addOption>
+                            </addOptions>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>

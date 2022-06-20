@@ -1,12 +1,16 @@
 package dev.ianjohnson.guatemala.examples.gtk.hello;
 
+import dev.ianjohnson.guatemala.examples.gtk.Example;
 import dev.ianjohnson.guatemala.gio.ApplicationFlags;
 import dev.ianjohnson.guatemala.gtk.*;
 
 import java.util.EnumSet;
 
-// https://docs.gtk.org/gtk4/getting_started.html#hello-world-in-c
-class Main {
+@Example(
+        name = "Hello World",
+        description = "A simple Hello World application",
+        source = "https://docs.gtk.org/gtk4/getting_started.html#hello-world-in-c")
+public final class Main {
     public static void main(String[] args) {
         Application app = Application.of("org.gtk.example", EnumSet.noneOf(ApplicationFlags.class));
         app.connectActivate(() -> activate(app));
