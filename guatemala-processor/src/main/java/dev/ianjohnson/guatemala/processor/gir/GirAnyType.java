@@ -1,8 +1,14 @@
 package dev.ianjohnson.guatemala.processor.gir;
 
+import com.squareup.javapoet.CodeBlock;
+import dev.ianjohnson.guatemala.processor.CodegenContext;
 import org.w3c.dom.Element;
 
-public sealed interface GirAnyType extends GirField.Type permits GirType, GirArrayType {
+import java.lang.foreign.Addressable;
+import java.lang.foreign.MemoryAddress;
+import java.lang.reflect.Type;
+
+public sealed interface GirAnyType extends GirField.Type, Layoutable permits GirType, GirArrayType {
     static boolean canLoad(Element element) {
         return GirType.canLoad(element) || GirArrayType.canLoad(element);
     }
@@ -13,5 +19,12 @@ public sealed interface GirAnyType extends GirField.Type permits GirType, GirArr
         } else {
             return GirType.load(element, ns);
         }
+    }
+
+    Type impl(CodegenContext ctx);
+
+    default Type paramImpl(CodegenContext ctx) {
+        Type binding = impl(ctx);
+        return binding == MemoryAddress.class ? Addressable.class : binding;
     }
 }

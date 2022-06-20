@@ -1,14 +1,24 @@
 package dev.ianjohnson.guatemala.processor.gir;
 
-import org.jetbrains.annotations.Nullable;
+import com.squareup.javapoet.CodeBlock;
+import com.squareup.javapoet.FieldSpec;
+import com.squareup.javapoet.MethodSpec;
+import dev.ianjohnson.guatemala.processor.ClassNames;
+import dev.ianjohnson.guatemala.processor.CodegenContext;
+import dev.ianjohnson.guatemala.processor.Names;
 import org.w3c.dom.Element;
-import org.w3c.dom.Node;
 
+import javax.lang.model.element.Modifier;
+import java.lang.foreign.FunctionDescriptor;
+import java.lang.foreign.ValueLayout;
+import java.lang.invoke.MethodHandle;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
 
-public record GirCallable(String name, String cIdentifier, ReturnValue returnValue, List<Parameter> parameters) {
+public record GirCallable(String name, String cIdentifier, ReturnValue returnValue, List<Parameter> parameters)
+        implements Named, Layoutable {
     public static boolean canLoad(Element element) {
         return NS.CORE.equals(element.getNamespaceURI()) && "callable".equals(element.getLocalName());
     }
@@ -44,6 +54,65 @@ public record GirCallable(String name, String cIdentifier, ReturnValue returnVal
     public boolean isVariadic() {
         return !parameters.isEmpty()
                 && GirType.VARARGS.equals(parameters.get(parameters.size() - 1).type());
+    }
+
+    public Impl impl(CodegenContext ctx) {
+        return new Impl(methodHandleFieldImpl(ctx), methodImpl(ctx));
+    }
+
+    @Override
+    public CodeBlock memoryLayout(CodegenContext ctx) {
+        return CodeBlock.of("$T.ADDRESS", ValueLayout.class);
+    }
+
+    private FieldSpec methodHandleFieldImpl(CodegenContext ctx) {
+        return FieldSpec.builder(MethodHandle.class, cIdentifier(), Modifier.STATIC, Modifier.FINAL)
+                .initializer("$T.lookup($S, $L)", ClassNames.BindingSupport, cIdentifier(), functionDescriptor(ctx))
+                .build();
+    }
+
+    private CodeBlock functionDescriptor(CodegenContext ctx) {
+        List<CodeBlock> parameterLayouts = parameters().stream()
+                .map(parameter -> parameter.type().memoryLayout(ctx))
+                .toList();
+        if (GirType.VOID.equals(returnValue().type())) {
+            return CodeBlock.of("$T.ofVoid($L)", FunctionDescriptor.class, CodeBlock.join(parameterLayouts, ", "));
+        } else {
+            return CodeBlock.of(
+                    "$T.of($L)",
+                    FunctionDescriptor.class,
+                    Stream.concat(Stream.of(returnValue().type().memoryLayout(ctx)), parameterLayouts.stream())
+                            .collect(CodeBlock.joining(", ")));
+        }
+    }
+
+    private MethodSpec methodImpl(CodegenContext ctx) {
+        Type returnType = returnValue().type().impl(ctx);
+        MethodSpec.Builder builder = MethodSpec.methodBuilder(Names.toJavaCamelCase(name()))
+                .addModifiers(Modifier.STATIC)
+                .returns(returnType);
+        List<CodeBlock> callParameters = new ArrayList<>();
+        for (GirCallable.Parameter parameter : parameters()) {
+            String name = Names.toJavaCamelCase(parameter.name());
+            builder.addParameter(parameter.type().paramImpl(ctx), name);
+            callParameters.add(CodeBlock.of("$L", name));
+        }
+
+        CodeBlock invocationExpr =
+                CodeBlock.of("$L.invokeExact($L)", cIdentifier(), CodeBlock.join(callParameters, ", "));
+        CodeBlock invocation;
+        if (returnType == void.class) {
+            invocation = CodeBlock.of("$L;\n", invocationExpr);
+        } else {
+            invocation = CodeBlock.of("return ($T) $L;\n", returnType, invocationExpr);
+        }
+        builder.beginControlFlow("try")
+                .addCode(invocation)
+                .nextControlFlow("catch (Throwable $$t)")
+                .addCode("throw $T.sneakyThrow($$t);\n", ClassNames.BindingSupport)
+                .endControlFlow();
+
+        return builder.build();
     }
 
     public record ReturnValue(GirAnyType type) {
@@ -87,6 +156,8 @@ public record GirCallable(String name, String cIdentifier, ReturnValue returnVal
             return new Parameter(name, type, isInstance);
         }
     }
+
+    public record Impl(FieldSpec methodHandleField, MethodSpec method) {}
 
     private record Parameters(List<Parameter> parameters) {
         public static boolean canLoad(Element element) {

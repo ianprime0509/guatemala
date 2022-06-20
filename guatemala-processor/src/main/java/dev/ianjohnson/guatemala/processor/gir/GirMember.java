@@ -2,7 +2,7 @@ package dev.ianjohnson.guatemala.processor.gir;
 
 import org.w3c.dom.Element;
 
-public record GirMember(String name, int value) {
+public record GirMember(String name, int value) implements Named {
     private static final long MAX_UNSIGNED_INT = (1L << 32) - 1;
 
     public static boolean canLoad(Element element) {

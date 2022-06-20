@@ -1,8 +1,10 @@
 package dev.ianjohnson.guatemala.processor.gir;
 
+import com.squareup.javapoet.CodeBlock;
+import dev.ianjohnson.guatemala.processor.CodegenContext;
 import org.w3c.dom.Element;
 
-public record GirField(String name, Type type) {
+public record GirField(String name, Type type) implements Named, Layoutable {
     public static boolean canLoad(Element element) {
         return NS.CORE.equals(element.getNamespaceURI()) && "field".equals(element.getLocalName());
     }
@@ -17,7 +19,12 @@ public record GirField(String name, Type type) {
         return new GirField(name, type);
     }
 
-    public sealed interface Type permits GirCallback, GirAnyType {
+    @Override
+    public CodeBlock memoryLayout(CodegenContext ctx) {
+        return CodeBlock.of("$L.withName($S)", type().memoryLayout(ctx), name());
+    }
+
+    public sealed interface Type extends Layoutable permits GirCallback, GirAnyType {
         static boolean canLoad(Element element) {
             return GirCallback.canLoad(element) || GirAnyType.canLoad(element);
         }

@@ -1,7 +1,12 @@
 package dev.ianjohnson.guatemala.processor.gir;
 
+import com.squareup.javapoet.MethodSpec;
+import com.squareup.javapoet.TypeSpec;
+import dev.ianjohnson.guatemala.processor.CodegenContext;
+import dev.ianjohnson.guatemala.processor.Impls;
 import org.w3c.dom.Element;
 
+import javax.lang.model.element.Modifier;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -16,7 +21,7 @@ public record GirNamespace(
         Map<String, GirBitField> bitFields,
         Map<String, GirEnum> enums,
         Map<String, GirCallback> callbacks,
-        Map<String, GirCallable> functions) {
+        Map<String, GirCallable> functions) implements Named {
     public static boolean canLoad(Element element) {
         return NS.CORE.equals(element.getNamespaceURI()) && "namespace".equals(element.getLocalName());
     }
@@ -73,12 +78,22 @@ public record GirNamespace(
                 Map.copyOf(aliases),
                 Map.copyOf(classes),
                 Map.copyOf(classRecords),
-            Map.copyOf(interfaces),
+                Map.copyOf(interfaces),
                 Map.copyOf(records),
                 Map.copyOf(unions),
                 Map.copyOf(bitFields),
                 Map.copyOf(enums),
                 Map.copyOf(callbacks),
                 Map.copyOf(functions));
+    }
+
+    public TypeSpec impl(CodegenContext ctx) {
+        TypeSpec.Builder builder = TypeSpec.classBuilder(name() + "Impl")
+                .addModifiers(Modifier.FINAL)
+                .addMethod(MethodSpec.constructorBuilder()
+                        .addModifiers(Modifier.PRIVATE)
+                        .build());
+        Impls.addCallables(builder, ctx, functions().values());
+        return builder.build();
     }
 }

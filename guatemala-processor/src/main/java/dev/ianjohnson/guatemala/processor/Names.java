@@ -4,13 +4,13 @@ import javax.lang.model.SourceVersion;
 import java.util.Locale;
 import java.util.regex.Pattern;
 
-final class Support {
+public final class Names {
     private static final Pattern NEW_WITH_PREFIX = Pattern.compile("^new(?:_with)?");
     private static final Pattern UNDERSCORE_NEW_WORD = Pattern.compile("_(.)");
 
-    private Support() {}
+    private Names() {}
 
-    static String toJavaCamelCase(String cName) {
+    public static String toJavaCamelCase(String cName) {
         if ("...".equals(cName)) {
             return "rest";
         }
@@ -23,7 +23,7 @@ final class Support {
         return cName;
     }
 
-    static String toJavaSnakeCase(String cName) {
+    public static String toJavaSnakeCase(String cName) {
         cName = cName.toUpperCase(Locale.ROOT);
         if (!SourceVersion.isName(cName)) {
             cName = "_" + cName;
